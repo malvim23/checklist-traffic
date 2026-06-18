@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traffic Logistics — Checklist Diário</title>
+<style>
+:root{
+  --bg:#f5f5f3;--surface:#fff;--s2:#f0eeea;--s3:#e6e4de;
+  --border:rgba(0,0,0,0.08);--bmd:rgba(0,0,0,0.15);--bstr:rgba(0,0,0,0.28);
+  --text:#1a1a18;--muted:#6b6b67;--hint:#a0a09a;
+  --sg:#EAF3DE;--tg:#27500A;--bg2:#639922;
+  --sd:#FCEBEB;--td:#791F1F;--bd:#E24B4A;
+  --sw:#FAEEDA;--tw:#633806;--bw:#BA7517;
+  --si:#E6F1FB;--ti:#0C447C;--bi:#378ADD;
+  --sp:#EEEDFE;--tp:#3C3489;--bp:#7F77DD;
+  --r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#111110;--surface:#1c1c1a;--s2:#242422;--s3:#2e2e2b;
+  --border:rgba(255,255,255,0.07);--bmd:rgba(255,255,255,0.13);--bstr:rgba(255,255,255,0.25);
+  --text:#e8e8e4;--muted:#9e9e99;--hint:#6b6b67;
+  --sg:#173404;--tg:#C0DD97;--bg2:#3B6D11;
+  --sd:#501313;--td:#F7C1C1;--bd:#A32D2D;
+  --sw:#412402;--tw:#FAC775;--bw:#854F0B;
+  --si:#042C53;--ti:#B5D4F4;--bi:#185FA5;
+  --sp:#26215C;--tp:#CECBF6;--bp:#534AB7;
+}}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;}
+button{font-family:inherit;cursor:pointer;font-size:13px;}
+input,textarea,select{font-family:inherit;font-size:12px;color:var(--text);background:var(--s2);border:0.5px solid var(--bmd);border-radius:6px;padding:4px 8px;outline:none;transition:border-color .15s,background .15s;}
+input:focus,textarea:focus,select:focus{border-color:var(--bi);background:var(--surface);}
+textarea{resize:vertical;}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;}
+.hdr{background:var(--surface);border-bottom:0.5px solid var(--bmd);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:60;}
+.hdr-l{display:flex;align-items:center;gap:10px;}
+.logo{width:28px;height:28px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.2;}
+.htitle{font-size:14px;font-weight:600;}
+.hsub{font-size:11px;color:var(--muted);}
+.hdr-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.day-sel{font-size:12px;padding:5px 10px;border-radius:20px;border:0.5px solid var(--bmd);background:var(--s2);color:var(--text);}
+.prog-pill{display:flex;align-items:center;gap:7px;background:var(--s2);border:0.5px solid var(--border);border-radius:20px;padding:4px 12px;}
+.prog-track{width:65px;height:4px;background:var(--bmd);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--bg2);border-radius:2px;transition:width .3s;}
+.prog-lbl{font-size:12px;font-weight:600;color:var(--tg);}
+.sync-pill{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);background:var(--s2);border:0.5px solid var(--border);border-radius:20px;padding:4px 10px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--bg2);}
+.sync-dot.syncing{animation:pulse 1s infinite;}
+.sync-dot.error{background:var(--bd);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.user-pill{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--ti);background:var(--si);border:0.5px solid var(--bi);border-radius:20px;padding:4px 10px;cursor:pointer;}
+.last-edit-bar{font-size:10.5px;color:var(--hint);padding:4px 18px;background:var(--s2);border-bottom:0.5px solid var(--border);}
+.last-edit-bar b{color:var(--muted);font-weight:600;}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;padding:10px 18px;background:var(--surface);border-bottom:0.5px solid var(--border);}
+.kpi{background:var(--s2);border-radius:var(--r);padding:8px 12px;}
+.kpi-l{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.kpi-v{font-size:18px;font-weight:600;}
+.kpi-s{font-size:10px;color:var(--hint);margin-top:1px;}
+.kg .kpi-v{color:var(--tg);}.kr .kpi-v{color:var(--td);}.ka .kpi-v{color:var(--tw);}.kb .kpi-v{color:var(--ti);}
+.tabs{display:flex;background:var(--surface);border-bottom:0.5px solid var(--bmd);padding:0 18px;overflow-x:auto;}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;}
+.tab:hover{color:var(--text);}
+.tab.on{color:var(--bi);border-bottom-color:var(--bi);}
+.content{display:none;}
+.content.on{display:block;}
+.split{display:grid;grid-template-columns:1fr 280px;gap:0;}
+@media(max-width:800px){.split{grid-template-columns:1fr;}}
+.cl-wrap{padding:12px 18px;border-right:0.5px solid var(--border);}
+.cl-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.sect-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.filters{display:flex;gap:4px;flex-wrap:wrap;}
+.fb{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;border:0.5px solid var(--bmd);background:transparent;color:var(--muted);}
+.fb:hover{background:var(--s2);}
+.fb.on{background:var(--text);color:var(--bg);border-color:var(--text);}
+.tb{margin-bottom:8px;}
+.tb-h{display:flex;align-items:center;gap:8px;padding:4px 0;margin-bottom:4px;}
+.tb-t{font-size:11px;font-weight:700;color:var(--muted);width:38px;flex-shrink:0;}
+.tb-line{flex:1;height:0.5px;background:var(--bmd);}
+.tb-c{font-size:10px;color:var(--hint);}
+.task{display:flex;align-items:flex-start;gap:7px;padding:6px 8px;border-radius:var(--r);margin-bottom:2px;border:0.5px solid transparent;transition:background .1s;}
+.task:hover{background:var(--s2);}
+.task.late{border-color:var(--bd);background:var(--sd);}
+.task.done{opacity:.42;}
+.task.done .tname{text-decoration:line-through;}
+.chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--bmd);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;margin-top:2px;transition:all .15s;background:var(--surface);}
+.chk.on{background:var(--bg2);border-color:var(--bg2);}
+.chk.on svg{display:block;}
+.chk svg{display:none;width:8px;height:8px;stroke:#fff;stroke-width:3;fill:none;}
+.tdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.dok{background:var(--bg2);}.dnow{background:var(--bw);}.dlate{background:var(--bd);}.dfut{background:var(--bmd);}
+.tinfo{flex:1;min-width:0;}
+.tname{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tobs{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tnote-wrap{margin-top:6px;padding-top:6px;border-top:0.5px solid var(--border);}
+.tnote-wrap textarea{width:100%;font-size:12px;min-height:34px;}
+.tright{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.ttype{font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;text-transform:uppercase;letter-spacing:.03em;}
+.tp-ps{background:var(--sp);color:var(--tp);}.tp-numeros{background:var(--si);color:var(--ti);}.tp-presenca{background:var(--sg);color:var(--tg);}.tp-confirmacao{background:var(--sw);color:var(--tw);}
+.xbtn{font-size:15px;color:var(--muted);background:none;border:none;padding:0 2px;line-height:1;}
+.xbtn:hover{color:var(--text);}
+.rp-mini{padding:12px 14px;}
+.rp-mini-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.mini-row{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:var(--r);margin-bottom:4px;background:var(--surface);border:0.5px solid var(--border);}
+.mini-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.mini-mot{font-size:10px;color:var(--muted);}
+.edr-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap;}
+.eg{background:var(--sg);color:var(--tg);}.ew{background:var(--sw);color:var(--tw);}.eb{background:var(--sd);color:var(--td);}.ez{background:var(--s2);color:var(--hint);}
+.clients-panel{padding:14px 18px;}
+.cp-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.add-btn{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 14px;border-radius:20px;border:0.5px solid var(--bmd);background:var(--surface);color:var(--text);}
+.add-btn:hover{background:var(--s2);}
+.print-btn{font-size:12px;padding:6px 14px;border-radius:20px;border:0.5px solid var(--bi);background:var(--bi);color:#fff;}
+.print-btn:hover{opacity:.9;}
+.cc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+.cc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);overflow:hidden;}
+.cc-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);}
+.cc-hdr-left{flex:1;min-width:0;}
+.cc-name-input{font-size:14px;font-weight:600;background:transparent;border:none;border-radius:4px;padding:2px 4px;width:100%;color:var(--text);}
+.cc-name-input:hover{background:var(--s2);}
+.cc-name-input:focus{background:var(--s2);outline:none;border:0.5px solid var(--bi);}
+.cc-mot-input{font-size:11px;color:var(--muted);background:transparent;border:none;border-radius:4px;padding:1px 4px;width:100%;margin-top:1px;}
+.cc-mot-input:hover{background:var(--s2);}
+.cc-mot-input:focus{background:var(--s2);outline:none;border:0.5px solid var(--bi);}
+.cc-hdr-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.rem-btn{width:22px;height:22px;border-radius:50%;border:0.5px solid var(--bd);background:var(--sd);color:var(--td);display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0;}
+.rem-btn:hover{opacity:.8;}
+.cc-edr-pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.cc-body{padding:10px 14px;}
+.cf-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid var(--border);gap:10px;}
+.cf-row:last-child{border-bottom:none;}
+.cf-label{font-size:12px;color:var(--muted);flex-shrink:0;width:110px;}
+.cf-val{flex:1;text-align:right;}
+.cf-val input,.cf-val select,.cf-val textarea{width:100%;text-align:right;background:var(--s2);}
+.cf-val textarea{text-align:left;min-height:40px;}
+.cf-val select{text-align:left;}
+.edr-bar-wrap{padding:10px 14px;border-top:0.5px solid var(--border);}
+.edr-bar-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px;}
+.edr-track{height:6px;background:var(--s2);border-radius:3px;overflow:hidden;}
+.edr-fill{height:100%;border-radius:3px;transition:width .4s;}
+.cc-edit-foot{font-size:9.5px;color:var(--hint);padding:6px 14px;border-top:0.5px solid var(--border);background:var(--s2);}
+.status-opt{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px;text-align:left!important;}
+.hist-wrap{padding:14px 18px;}
+.hist-sel-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.hist-sel-row select{font-size:13px;padding:6px 10px;width:auto;min-width:200px;}
+.hist-day-view{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:14px;}
+.hist-empty{font-size:13px;color:var(--hint);text-align:center;padding:30px 0;}
+.htask{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--border);font-size:12px;}
+.htask:last-child{border-bottom:none;}
+.hchk{width:13px;height:13px;border-radius:3px;flex-shrink:0;}
+.hnote{font-size:11px;color:var(--muted);margin-left:21px;padding-bottom:4px;}
+.an-wrap{padding:14px 18px;}
+.an-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;}
+@media(max-width:900px){.an-grid{grid-template-columns:1fr;}}
+.an-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:14px 16px;margin-bottom:14px;}
+.an-card-title{font-size:12px;font-weight:700;margin-bottom:2px;}
+.an-card-sub{font-size:10.5px;color:var(--muted);margin-bottom:12px;}
+.an-controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.an-controls select{font-size:11px;}
+.chart-wrap{position:relative;width:100%;overflow-x:auto;}
+.heat-cell{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;color:#fff;flex-shrink:0;cursor:default;}
+.heat-cells{display:flex;gap:3px;flex:1;flex-wrap:wrap;}
+.heat-legend{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--muted);margin-top:10px;}
+.heat-leg-sw{width:12px;height:12px;border-radius:3px;}
+.rank-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border);}
+.rank-row:last-child{border-bottom:none;}
+.rank-pos{font-size:11px;font-weight:700;color:var(--hint);width:18px;}
+.rank-name{flex:1;font-size:12px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-bar-wrap{flex:1;height:6px;background:var(--s2);border-radius:3px;overflow:hidden;max-width:90px;}
+.rank-bar{height:100%;border-radius:3px;}
+.rank-pct{font-size:11px;font-weight:700;width:42px;text-align:right;}
+.an-empty{font-size:12px;color:var(--hint);text-align:center;padding:30px 0;}
+.modal-ovl{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:300;}
+.modal-box{background:var(--surface);border-radius:var(--rl);padding:24px 26px;width:300px;box-shadow:0 12px 30px rgba(0,0,0,0.25);}
+.modal-box h3{font-size:15px;margin-bottom:6px;}
+.modal-box p{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.modal-box input{width:100%;font-size:13px;padding:9px 10px;margin-bottom:12px;}
+.modal-box button{width:100%;padding:9px;border-radius:8px;border:none;background:var(--bi);color:#fff;font-size:13px;font-weight:600;}
+.loading-ovl{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
+.loading-spinner{width:32px;height:32px;border:3px solid var(--bmd);border-top-color:var(--bi);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<div id="loadingOvl" class="loading-ovl">
+  <div class="loading-spinner"></div>
+  <div style="font-size:13px;color:var(--muted);">A ligar ao Firebase...</div>
+</div>
+
+<div id="idModalOvl" class="modal-ovl" style="display:none;">
+  <div class="modal-box">
+    <h3>Como te chamas?</h3>
+    <p>O teu nome vai aparecer junto das alterações que fizeres, para a equipa saber quem editou o quê.</p>
+    <input type="text" id="idNameInput" placeholder="Ex: Misael, Matheus, Eliel..." maxlength="30">
+    <button onclick="saveUserName()">Continuar</button>
+  </div>
+</div>
+
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="logo"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+    <div><div class="htitle">Traffic Logistics — Checklist</div><div class="hsub" id="hdate"></div></div>
+  </div>
+  <div class="hdr-r">
+    <div class="user-pill" id="userPill" onclick="changeUserName()">👤 —</div>
+    <div class="sync-pill"><span class="sync-dot" id="syncDot"></span><span id="sync-lbl">A ligar...</span></div>
+    <select class="day-sel" id="day-picker" onchange="switchDay(this.value)"></select>
+    <div class="prog-pill">
+      <div class="prog-track"><div class="prog-fill" id="progbar" style="width:0%"></div></div>
+      <span class="prog-lbl" id="progpct">0%</span>
+    </div>
+    <span style="font-size:11px;color:var(--muted);" id="prog-count"></span>
+  </div>
+</div>
+<div class="last-edit-bar" id="lastEditBar">—</div>
+
+<div class="kpi-row">
+  <div class="kpi kg"><div class="kpi-l">Concluídas</div><div class="kpi-v" id="k-done">0</div><div class="kpi-s">de <span id="k-total">0</span></div></div>
+  <div class="kpi kr"><div class="kpi-l">Por fazer</div><div class="kpi-v" id="k-pend">0</div><div class="kpi-s">em aberto</div></div>
+  <div class="kpi ka"><div class="kpi-l">Em atraso</div><div class="kpi-v" id="k-late">0</div><div class="kpi-s">já passou a hora</div></div>
+  <div class="kpi kb"><div class="kpi-l">Próxima tarefa</div><div class="kpi-v" id="k-next" style="font-size:12px;line-height:1.3;padding-top:2px;">—</div><div class="kpi-s" id="k-next-c">—</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="showTab('checklist',this)">Checklist</button>
+  <button class="tab" onclick="showTab('clientes',this)">Clientes do dia</button>
+  <button class="tab" onclick="showTab('historico',this)">Histórico</button>
+  <button class="tab" onclick="showTab('analises',this)">Análises</button>
+</div>
+
+<div class="content on" id="tab-checklist">
+<div class="split">
+  <div class="cl-wrap">
+    <div class="cl-head">
+      <span class="sect-title">Tarefas</span>
+      <div class="filters">
+        <button class="fb on" onclick="setFilter('todos',this)">Todos</button>
+        <button class="fb" onclick="setFilter('presenca',this)">Presença</button>
+        <button class="fb" onclick="setFilter('ps',this)">PS</button>
+        <button class="fb" onclick="setFilter('numeros',this)">Números</button>
+        <button class="fb" onclick="setFilter('pendentes',this)">Pendentes</button>
+        <button class="fb" onclick="setFilter('atraso',this)">Atraso</button>
+      </div>
+    </div>
+    <div id="cl-body"></div>
+  </div>
+  <div class="rp-mini">
+    <div class="rp-mini-title">EDR resumo</div>
+    <div id="mini-clients"></div>
+  </div>
+</div>
+</div>
+
+<div class="content" id="tab-clientes">
+<div class="clients-panel">
+  <div class="cp-topbar">
+    <span class="sect-title" id="clients-day-label"></span>
+    <div style="display:flex;gap:8px;">
+      <button class="add-btn" onclick="addClient()">+ Adicionar cliente</button>
+      <button class="print-btn" onclick="printReport()">📄 Gerar Relatório PDF</button>
+    </div>
+  </div>
+  <div class="cc-grid" id="cc-grid"></div>
+</div>
+</div>
+
+<div class="content" id="tab-historico">
+<div class="hist-wrap">
+  <div class="hist-sel-row">
+    <span class="sect-title">Ver dia:</span>
+    <select id="hist-picker" onchange="renderHistoryDay(this.value)"></select>
+  </div>
+  <div id="hist-view"><div class="hist-empty">Selecione um dia para ver o registo.</div></div>
+</div>
+</div>
+
+<div class="content" id="tab-analises">
+<div class="an-wrap">
+  <div class="an-controls">
+    <span class="sect-title" style="align-self:center;">Período:</span>
+    <select id="an-range" onchange="renderAnalytics()">
+      <option value="7">Últimos 7 dias</option>
+      <option value="14" selected>Últimos 14 dias</option>
+      <option value="30">Últimos 30 dias</option>
+    </select>
+  </div>
+  <div class="an-grid">
+    <div>
+      <div class="an-card">
+        <div class="an-card-title">📊 Cumprimento diário do checklist</div>
+        <div class="an-card-sub">% de tarefas concluídas por dia</div>
+        <div id="heatmapBody" class="chart-wrap"><div class="an-empty">A carregar...</div></div>
+        <div class="heat-legend">
+          <span class="heat-leg-sw" style="background:var(--bd);"></span><span>&lt;60%</span>
+          <span class="heat-leg-sw" style="background:var(--bw);"></span><span>60–89%</span>
+          <span class="heat-leg-sw" style="background:var(--bg2);"></span><span>≥90%</span>
+          <span class="heat-leg-sw" style="background:var(--bmd);"></span><span>Sem dados</span>
+        </div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-title">📈 Tendência de EDR médio</div>
+        <div class="an-card-sub">Média diária do EDR no período</div>
+        <div id="edrTrendBody" class="chart-wrap"><div class="an-empty">A carregar...</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="an-card">
+        <div class="an-card-title">🏆 Ranking de EDR por cliente</div>
+        <div class="an-card-sub">Média do período, do melhor ao pior</div>
+        <div id="edrRankBody"><div class="an-empty">A carregar...</div></div>
+      </div>
+      <div class="an-card">
+        <div class="an-card-title">📋 Ranking de cumprimento por dia</div>
+        <div class="an-card-sub">Dias com maior e menor % concluído</div>
+        <div id="complianceRankBody"><div class="an-empty">A carregar...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAiwFp5NIv9oBUbfrXF7hLse7uUg6eZl-M",
+  authDomain: "checklist-trafficlogistic.firebaseapp.com",
+  projectId: "checklist-trafficlogistic",
+  storageBucket: "checklist-trafficlogistic.firebasestorage.app",
+  messagingSenderId: "224162553180",
+  appId: "1:224162553180:web:2b276298487b80dd587599"
+};
+
+const fireApp = initializeApp(firebaseConfig);
+const db = getFirestore(fireApp);
+
+const TASKS=[
+  {id:1,hora:'08:00',cliente:'GPS Carrinhas',tipo:'confirmacao',obs:'Confirmar se carrinhas dormiram no local da operação'},
+  {id:2,hora:'08:00',cliente:'CML',tipo:'presenca',obs:'Confirmação presença. Inserir quadro presenças no grupo OPS CML'},
+  {id:3,hora:'08:00',cliente:'CTT',tipo:'presenca',obs:'Confirmação presença. Inserir quadro presenças no grupo'},
+  {id:4,hora:'08:30',cliente:'Delta Café Montijo',tipo:'ps',obs:'PS 08H30. Inserir print do mapa das entregas do dia'},
+  {id:5,hora:'09:00',cliente:'CNT Bom Dia',tipo:'ps',obs:'PS 09H. Inserir no grupo PS de cada loja. Visão global'},
+  {id:6,hora:'09:00',cliente:'DHL Parcel Algarve',tipo:'presenca',obs:'Confirmação presença. Inserir quadro presenças no grupo'},
+  {id:7,hora:'09:30',cliente:'Pingo Doce',tipo:'presenca',obs:'Confirmação presença. Inserir quadro OPS PD / Lyzer'},
+  {id:8,hora:'10:00',cliente:"Domino's",tipo:'presenca',obs:'Confirmação presença dos motoristas'},
+  {id:9,hora:'10:00',cliente:'Pingo Doce',tipo:'ps',obs:'PS — Enviar fotografia do ficheiro (Looker → Logistics@)'},
+  {id:10,hora:'10:00',cliente:'Auchan / Minipreço',tipo:'presenca',obs:'Confirmação presença motorista Lisboa'},
+  {id:11,hora:'10:00',cliente:'DPD',tipo:'numeros',obs:'Solicitar números aos motoristas da DPD'},
+  {id:12,hora:'11:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 11H. Inserir no grupo PS'},
+  {id:13,hora:'11:00',cliente:'Uber Eats',tipo:'presenca',obs:'Confirmar motoristas online e nos pontos correctos'},
+  {id:14,hora:'11:00',cliente:'Traffic Logistics',tipo:'ps',obs:'Quadro PS no grupo OPS TRAFFIC — print do panorama'},
+  {id:15,hora:'11:00',cliente:'Delta Café',tipo:'ps',obs:'PS 11H00. Print mapa + encomendas por finalizar (incl. Abrunheira)'},
+  {id:16,hora:'11:30',cliente:'Justsushi',tipo:'presenca',obs:'Confirmação presença (Évora / Viseu / Coimbra)'},
+  {id:17,hora:'12:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 12H. Inserir no grupo PS'},
+  {id:18,hora:'12:00',cliente:'Delta Café',tipo:'ps',obs:'PS 12H00. Print mapa + encomendas por finalizar'},
+  {id:19,hora:'12:30',cliente:'Uber Eats',tipo:'ps',obs:'Controlo de horas Uber Eats'},
+  {id:20,hora:'13:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 13H. Inserir no grupo PS'},
+  {id:21,hora:'13:00',cliente:'Auchan / Minipreço',tipo:'ps',obs:'Inserir no grupo PS'},
+  {id:22,hora:'13:00',cliente:'Delta Café',tipo:'ps',obs:'PS 13H00. Print mapa + encomendas por finalizar'},
+  {id:23,hora:'14:00',cliente:'Pingo Doce',tipo:'ps',obs:'PS — Enviar fotografia do ficheiro (Looker → Logistics@)'},
+  {id:24,hora:'14:00',cliente:'Uber Eats',tipo:'ps',obs:'PS Uber todas as cidades — pedidos + motoristas online'},
+  {id:25,hora:'14:00',cliente:'Delta Café',tipo:'ps',obs:'PS 14H00. Print mapa + encomendas por finalizar'},
+  {id:26,hora:'15:00',cliente:'Delta Café',tipo:'ps',obs:'Print mapa + encomendas por finalizar'},
+  {id:27,hora:'15:00',cliente:'CNT Bom Dia',tipo:'ps',obs:'PS 15H. Inserir no grupo PS (Lisboa e Porto)'},
+  {id:28,hora:'15:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 15H. Inserir no grupo PS'},
+  {id:29,hora:'15:00',cliente:'Pingo Doce',tipo:'ps',obs:'PS — Enviar fotografia do ficheiro (Looker → Logistics@)'},
+  {id:30,hora:'16:00',cliente:'Auchan / Minipreço',tipo:'ps',obs:'PS 16H00. Inserir no grupo PS'},
+  {id:31,hora:'16:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 16H. Inserir no grupo PS'},
+  {id:32,hora:'16:00',cliente:'Delta Café',tipo:'ps',obs:'Print mapa + encomendas por finalizar (incl. Abrunheira)'},
+  {id:33,hora:'17:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 17H. Inserir no grupo PS'},
+  {id:34,hora:'17:00',cliente:'Pingo Doce',tipo:'ps',obs:'PS — Enviar fotografia do ficheiro (Looker → Logistics@)'},
+  {id:35,hora:'17:00',cliente:'Delta Café',tipo:'ps',obs:'Print mapa + encomendas por finalizar (incl. Abrunheira)'},
+  {id:36,hora:'17:30',cliente:'Uber Eats',tipo:'confirmacao',obs:'Confirmar troca de motoristas — 1 off, 1 online'},
+  {id:37,hora:'18:00',cliente:'Justsushi',tipo:'presenca',obs:'Confirmação presença (Évora / Viseu / Coimbra)'},
+  {id:38,hora:'18:00',cliente:'UPS',tipo:'numeros',obs:'Atualizar números "Números Anuais" + enviar quadro grupo UPS'},
+  {id:39,hora:'19:00',cliente:"Domino's",tipo:'presenca',obs:"Enviar no grupo Domino's - OPS DE o ficheiro de presenças"},
+  {id:40,hora:'19:00',cliente:'Pingo Doce',tipo:'ps',obs:'PS — Enviar fotografia do ficheiro (Looker → Logistics@)'},
+  {id:41,hora:'19:00',cliente:'DPD',tipo:'numeros',obs:'Atualizar números diários + enviar no grupo DPD - OPS DE'},
+  {id:42,hora:'19:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 19H. Inserir no grupo PS'},
+  {id:43,hora:'19:00',cliente:'Auchan / Minipreço',tipo:'ps',obs:'PS 19H. Inserir no grupo PS de cada loja'},
+  {id:44,hora:'19:00',cliente:'DHL Coimbra',tipo:'numeros',obs:'Atualizar números diários no ficheiro "DHL Coimbra 2026"'},
+  {id:45,hora:'19:00',cliente:'DHL Vila Real',tipo:'numeros',obs:'Atualizar números diários no ficheiro "DHL Vila Real 2026"'},
+  {id:46,hora:'19:00',cliente:'Uber Eats',tipo:'ps',obs:'Check de drivers nos pontos de referência'},
+  {id:47,hora:'19:00',cliente:'GLS',tipo:'numeros',obs:'Inserir no quadro Números DE + enviar no grupo interno GLS'},
+  {id:48,hora:'19:30',cliente:'Hugo Boss Lisboa/Porto',tipo:'numeros',obs:'Nº stops entregues + hora de fecho. Inserir no ficheiro.'},
+  {id:49,hora:'19:30',cliente:'Delta Montijo',tipo:'numeros',obs:'Atualizar números + inserir quadro no grupo + carregar ficheiro dia seguinte'},
+  {id:50,hora:'21:00',cliente:'CDL / CSC',tipo:'ps',obs:'PS 21H. Inserir no grupo PS'},
+  {id:51,hora:'21:00',cliente:'Auchan / Minipreço',tipo:'numeros',obs:'Enviar quadro números finais no grupo AUCHAN - OPS DE'},
+  {id:52,hora:'21:30',cliente:'Uber Eats',tipo:'ps',obs:'PS Uber todas as cidades — pedidos + motoristas online'},
+  {id:53,hora:'21:30',cliente:'CNT Bom Dia',tipo:'ps',obs:'PS final. Inserir quadro Números Mensais + enviar no grupo'},
+  {id:54,hora:'22:30',cliente:"Domino's",tipo:'numeros',obs:'Atualizar números diários no ficheiro "Números Anuais"'},
+  {id:55,hora:'23:00',cliente:'Justsushi',tipo:'numeros',obs:'Atualizar números diários "Números Anuais" + enviar grupo Justsushi'},
+  {id:56,hora:'23:00',cliente:'Uber Eats',tipo:'numeros',obs:'Atualizar ficheiro Números Anuais UE + enviar grupo UE - OPS DE'},
+  {id:57,hora:'23:00',cliente:'Traffic Logistics',tipo:'ps',obs:'Enviar no grupo OPS TRAFFIC — Quadro PS final com números e horários'},
+  {id:58,hora:'23:30',cliente:'CDL / CSC',tipo:'numeros',obs:'PS final. Inserir quadro Números Mensais + quadro no grupo CDL/CSC OPS DE'},
+];
+
+const DEFAULT_CLIENTS=[
+  {uid:'dhl-alg',name:'DHL Parcel Algarve',colaborador:'Paulo'},
+  {uid:'dhl-vr',name:'DHL Parcel Vila Real',colaborador:'Lito'},
+  {uid:'gls-doug',name:'GLS',colaborador:'Douglas'},
+  {uid:'gls-gab',name:'GLS',colaborador:'Gabriel'},
+  {uid:'dpd-otel',name:'DPD Faro',colaborador:'Otelindo Santos'},
+  {uid:'dpd-kaua',name:'DPD Faro',colaborador:'Kaua Junior'},
+  {uid:'ctt-el',name:'CTT Algarve (Lagos)',colaborador:'Eliano'},
+  {uid:'ctt-ab',name:'CTT Algarve (Lagos)',colaborador:'Aline Beatriz'},
+  {uid:'delta',name:'Delta Montijo',colaborador:'3 Motoristas'},
+  {uid:'ue-lam',name:'Uber Eats',colaborador:'Lamego'},
+  {uid:'ue-fun',name:'Uber Eats',colaborador:'Fundão'},
+  {uid:'ue-elv',name:'Uber Eats',colaborador:'Elvas'},
+  {uid:'ue-por',name:'Uber Eats',colaborador:'Portalegre'},
+];
+
+let cache={}, unsubscribes={}, currentDay=todayISO(), currentFilter='todos', expanded={}, myName=null, saveTimer=null;
+
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function blankDay(){return {done:[],notes:{},clients:{},clientList:null,lastEdit:null};}
+function dayRef(day){return doc(db,'dias',day);}
+function setSyncLabel(txt,err=false){const l=document.getElementById('sync-lbl'),d=document.getElementById('syncDot');if(!l||!d)return;l.textContent=txt;d.className='sync-dot'+(err?' error':'');}
+function setSyncing(){document.getElementById('syncDot').className='sync-dot syncing';document.getElementById('sync-lbl').textContent='A guardar...';}
+
+async function loadDay(day){
+  if(cache[day])return;
+  try{const snap=await getDoc(dayRef(day));cache[day]=snap.exists()?snap.data():blankDay();}
+  catch(e){cache[day]=blankDay();setSyncLabel('Erro de ligação',true);}
+}
+
+function queueSave(day){
+  setSyncing();clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{await setDoc(dayRef(day),cache[day]);setSyncLabel('Sincronizado ✓');renderLastEditBar();}
+    catch(e){setSyncLabel('Erro ao guardar',true);}
+  },600);
+}
+
+function listenDay(day){
+  if(unsubscribes[day])return;
+  unsubscribes[day]=onSnapshot(dayRef(day),snap=>{
+    if(!snap.exists())return;
+    const inc=snap.data();
+    if(JSON.stringify(inc)===JSON.stringify(cache[day]))return;
+    cache[day]=inc;
+    if(day===currentDay){render();updateMini();renderLastEditBar();if(document.getElementById('tab-clientes').classList.contains('on'))renderClients();}
+  },e=>setSyncLabel('Erro de ligação',true));
+}
+
+function dayData(day){if(!cache[day])cache[day]=blankDay();return cache[day];}
+function getClientList(day){const d=dayData(day);return d.clientList?d.clientList:DEFAULT_CLIENTS.map(c=>({...c}));}
+function stampEdit(day,what){dayData(day).lastEdit={by:myName||'Alguém',at:new Date().toISOString(),what};}
+function setDone(day,id,val,label){const d=dayData(day);if(val&&!d.done.includes(id))d.done.push(id);if(!val)d.done=d.done.filter(x=>x!==id);stampEdit(day,(val?'marcou ':'desmarcou ')+'"'+label+'"');queueSave(day);}
+function setNote(day,id,val,label){dayData(day).notes[id]=val;stampEdit(day,'nota em "'+label+'"');queueSave(day);}
+function setClientField(day,uid,field,val,lbl){
+  const d=dayData(day);if(!d.clients[uid])d.clients[uid]={};
+  d.clients[uid][field]=val;d.clients[uid]._editedBy=myName||'Alguém';d.clients[uid]._editedAt=new Date().toISOString();
+  stampEdit(day,field+' de '+lbl);queueSave(day);refreshEdr(day,uid);
+}
+function getF(day,uid,field,def=''){const d=dayData(day);return(d.clients[uid]&&d.clients[uid][field]!==undefined)?d.clients[uid][field]:def;}
+
+function getNow(){if(currentDay!==todayISO())return 24*60;const n=new Date();return n.getHours()*60+n.getMinutes();}
+function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+function fmtLong(iso){if(!iso)return'';const[y,m,d]=iso.split('-');const dt=new Date(y,m-1,d);const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];return`${dias[dt.getDay()]}, ${parseInt(d)} de ${meses[m-1]} de ${y}`;}
+function fmtShort(iso){if(!iso)return'';const[y,m,d]=iso.split('-');const dt=new Date(y,m-1,d);const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];return`${dias[dt.getDay()]} ${parseInt(d)}/${meses[m-1]}/${y}`;}
+function fmtTime(iso){if(!iso)return'';const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function timeAgo(iso){if(!iso)return'';const diff=Math.floor((Date.now()-new Date(iso).getTime())/1000);if(diff<60)return'agora mesmo';if(diff<3600)return'há '+Math.floor(diff/60)+' min';if(diff<86400)return'há '+Math.floor(diff/3600)+'h';return'há '+Math.floor(diff/86400)+'d';}
+
+function renderLastEditBar(){const bar=document.getElementById('lastEditBar');const d=dayData(currentDay);if(!d.lastEdit){bar.innerHTML='Sem alterações registadas para este dia ainda.';return;}bar.innerHTML=`✏️ Última alteração: <b>${d.lastEdit.by}</b> — ${d.lastEdit.what} <span style="margin-left:4px;">(${timeAgo(d.lastEdit.at)}, ${fmtTime(d.lastEdit.at)})</span>`;}
+
+function loadMyName(){try{myName=localStorage.getItem('tl_user_name')||null;}catch(e){myName=null;}}
+function persistMyName(n){try{localStorage.setItem('tl_user_name',n);}catch(e){}}
+window.saveUserName=function(){const v=document.getElementById('idNameInput').value.trim();if(!v)return;myName=v;persistMyName(v);document.getElementById('idModalOvl').style.display='none';document.getElementById('userPill').textContent='👤 '+myName;if(window._resolveNamePrompt){window._resolveNamePrompt();window._resolveNamePrompt=null;}};
+window.changeUserName=function(){document.getElementById('idNameInput').value=myName||'';document.getElementById('idModalOvl').style.display='flex';document.getElementById('idNameInput').focus();window._resolveNamePrompt=null;};
+document.getElementById('idNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')window.saveUserName();});
+function ensureUserName(){return new Promise(resolve=>{loadMyName();if(myName){document.getElementById('userPill').textContent='👤 '+myName;resolve();return;}document.getElementById('idModalOvl').style.display='flex';document.getElementById('idNameInput').focus();window._resolveNamePrompt=resolve;});}
+
+function buildDayPicker(){const sel=document.getElementById('day-picker');sel.innerHTML='';const base=new Date();for(let i=-60;i<=180;i++){const d=new Date(base);d.setDate(d.getDate()+i);const iso=d.toISOString().slice(0,10);const opt=document.createElement('option');opt.value=iso;opt.textContent=(iso===todayISO()?'Hoje — ':'')+fmtShort(iso);if(iso===currentDay)opt.selected=true;sel.appendChild(opt);}}
+function buildHistPicker(){const sel=document.getElementById('hist-picker');sel.innerHTML='<option value="">— selecione um dia —</option>';const base=new Date();for(let i=0;i<=180;i++){const d=new Date(base);d.setDate(d.getDate()-i);const iso=d.toISOString().slice(0,10);const opt=document.createElement('option');opt.value=iso;opt.textContent=(iso===todayISO()?'Hoje — ':'')+fmtShort(iso);sel.appendChild(opt);}}
+function updateDateLabel(){document.getElementById('hdate').textContent=currentDay===todayISO()?'Hoje — '+fmtLong(currentDay):fmtLong(currentDay);const lbl=document.getElementById('clients-day-label');if(lbl)lbl.textContent='Clientes do dia — '+fmtShort(currentDay);}
+
+window.switchDay=async function(day){currentDay=day;buildDayPicker();updateDateLabel();setSyncLabel('A carregar...');await loadDay(day);setSyncLabel('Sincronizado ✓');listenDay(day);render();updateMini();renderLastEditBar();if(document.getElementById('tab-clientes').classList.contains('on'))renderClients();};
+window.setFilter=function(f,btn){currentFilter=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');render();};
+
+function filteredTasks(){const d=dayData(currentDay);const now=getNow();return TASKS.filter(t=>{if(currentFilter==='todos')return true;if(currentFilter==='pendentes')return!d.done.includes(t.id);if(currentFilter==='atraso')return!d.done.includes(t.id)&&t2m(t.hora)<now-10;return t.tipo===currentFilter;});}
+function tipoLbl(t){return{ps:'PS',numeros:'Números',presenca:'Presença',confirmacao:'Confirm.'}[t]||t;}
+function dotCls(task,isDone,now){if(isDone)return'dok';const tm=t2m(task.hora);if(tm<now-10)return'dlate';if(tm<=now+20)return'dnow';return'dfut';}
+
+function render(){
+  const d=dayData(currentDay);const now=getNow();const ft=filteredTasks();
+  const groups={};ft.forEach(t=>{if(!groups[t.hora])groups[t.hora]=[];groups[t.hora].push(t);});
+  const hours=Object.keys(groups).sort();let html='';
+  hours.forEach(h=>{const list=groups[h];const dc=list.filter(t=>d.done.includes(t.id)).length;
+    html+=`<div class="tb"><div class="tb-h"><span class="tb-t">${h}</span><span class="tb-line"></span><span class="tb-c">${dc}/${list.length}</span></div>`;
+    list.forEach(t=>{const isDone=d.done.includes(t.id);const isLate=!isDone&&t2m(t.hora)<now-10;const exp=expanded[t.id];const note=d.notes[t.id]||'';
+      html+=`<div class="task${isDone?' done':''}${isLate?' late':''}">
+        <div class="chk${isDone?' on':''}" onclick="toggleDone(${t.id},'${t.cliente.replace(/'/g,"\\'")}')"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></div>
+        <div class="tdot ${dotCls(t,isDone,now)}"></div>
+        <div class="tinfo"><div class="tname">${t.cliente}</div><div class="tobs">${t.obs}</div>
+          ${exp?`<div class="tnote-wrap"><textarea placeholder="Nota / observação..." onchange="setNote('${currentDay}',${t.id},this.value,'${t.cliente.replace(/'/g,"\\'")}')">${note}</textarea></div>`:''}
+        </div>
+        <div class="tright"><span class="ttype tp-${t.tipo}">${tipoLbl(t.tipo)}</span><button class="xbtn" onclick="toggleExp(${t.id})">${exp?'−':'+'}</button></div>
+      </div>`;});html+='</div>';});
+  document.getElementById('cl-body').innerHTML=html;
+  const total=TASKS.length,doneC=d.done.length,pend=total-doneC;
+  const lateC=currentDay===todayISO()?TASKS.filter(t=>!d.done.includes(t.id)&&t2m(t.hora)<now-10).length:0;
+  const pct=Math.round(doneC/total*100);
+  document.getElementById('k-done').textContent=doneC;document.getElementById('k-total').textContent=total;document.getElementById('k-pend').textContent=pend;document.getElementById('k-late').textContent=lateC;
+  document.getElementById('progbar').style.width=pct+'%';document.getElementById('progpct').textContent=pct+'%';document.getElementById('prog-count').textContent=doneC+'/'+total;
+  const nextT=currentDay===todayISO()?TASKS.filter(t=>!d.done.includes(t.id)&&t2m(t.hora)>=now).sort((a,b)=>t2m(a.hora)-t2m(b.hora))[0]:null;
+  document.getElementById('k-next').textContent=nextT?nextT.hora:'—';document.getElementById('k-next-c').textContent=nextT?nextT.cliente:(currentDay===todayISO()?'Tudo feito!':'—');
+}
+window.toggleDone=function(id,label){const d=dayData(currentDay);setDone(currentDay,id,!d.done.includes(id),label);render();renderLastEditBar();};
+window.toggleExp=function(id){expanded[id]=!expanded[id];render();};
+window.setNote=setNote;
+
+function calcEdr(day,uid){const c=parseFloat(getF(day,uid,'carga'))||0;const e=parseFloat(getF(day,uid,'entregues'))||0;if(!c)return null;return(e/c*100).toFixed(1);}
+function edrCls(v){if(v===null)return'ez';return parseFloat(v)>=95?'eg':parseFloat(v)>=85?'ew':'eb';}
+function edrColor(v){if(v===null)return'var(--bmd)';return parseFloat(v)>=95?'var(--bg2)':parseFloat(v)>=85?'var(--bw)':'var(--bd)';}
+
+function updateMini(){const el=document.getElementById('mini-clients');if(!el)return;const list=getClientList(currentDay);let html='';list.forEach(c=>{const edr=calcEdr(currentDay,c.uid);const ecls=edrCls(edr);html+=`<div class="mini-row"><div style="min-width:0;overflow:hidden;"><div class="mini-name">${c.name}</div><div class="mini-mot">${c.colaborador}</div></div><span class="edr-badge ${ecls}">${edr!==null?edr+'%':'—'}</span></div>`;});el.innerHTML=html||'<div style="font-size:12px;color:var(--hint);padding:8px 0;">Sem clientes</div>';}
+
+function refreshEdr(day,uid){if(day!==currentDay)return;const edr=calcEdr(day,uid);const ecls=edrCls(edr);const txt=edr!==null?edr+'%':'—';const fillW=edr!==null?Math.min(parseFloat(edr),100):0;const fillClr=edrColor(edr);const pill=document.getElementById('pill-'+uid);const fill=document.getElementById('fill-'+uid);const lbl=document.getElementById('lbl-'+uid);const foot=document.getElementById('foot-'+uid);if(pill){pill.textContent=txt;pill.className='cc-edr-pill '+ecls;}if(fill){fill.style.width=fillW+'%';fill.style.background=fillClr;}if(lbl){lbl.textContent='EDR: '+txt;}if(foot){const ed=getF(currentDay,uid,'_editedBy','');const eat=getF(currentDay,uid,'_editedAt','');foot.textContent=ed?`Editado por ${ed} · ${timeAgo(eat)}`:'Ainda sem edições';}updateMini();renderLastEditBar();}
+window.setClientField=setClientField;
+
+function statusOpts(cur){const opts=['OK','Faltou','Sem carga','TPA sem sinal','Back-up externo','Back-up interno','Operação parcial','Aguardar dados'];return opts.map(o=>`<option${cur===o?' selected':''}>${o}</option>`).join('');}
+
+function renderClients(){
+  updateDateLabel();const list=getClientList(currentDay);const grid=document.getElementById('cc-grid');if(!grid)return;let html='';
+  list.forEach((c,idx)=>{const uid=c.uid;const status=getF(currentDay,uid,'status','OK');const carga=getF(currentDay,uid,'carga','');const ent=getF(currentDay,uid,'entregues','');const nent=getF(currentDay,uid,'nentregues','');const saida=getF(currentDay,uid,'saida','');const fim=getF(currentDay,uid,'fim','');const obs=getF(currentDay,uid,'obs','');const editedBy=getF(currentDay,uid,'_editedBy','');const editedAt=getF(currentDay,uid,'_editedAt','');const edr=calcEdr(currentDay,uid);const ecls=edrCls(edr);const edrTxt=edr!==null?edr+'%':'—';const fillW=edr!==null?Math.min(parseFloat(edr),100):0;const fillClr=edrColor(edr);const nameEsc=c.name.replace(/'/g,"\\'");
+    html+=`<div class="cc" id="card-${uid}"><div class="cc-hdr"><div class="cc-hdr-left"><input class="cc-name-input" value="${c.name}" placeholder="Nome do cliente" onchange="updateClientMeta(${idx},'name',this.value)"><input class="cc-mot-input" value="${c.colaborador}" placeholder="Colaborador / motorista" onchange="updateClientMeta(${idx},'colaborador',this.value)"></div><div class="cc-hdr-right"><span class="cc-edr-pill ${ecls}" id="pill-${uid}">${edrTxt}</span><button class="rem-btn" onclick="removeClient(${idx})" title="Remover">−</button></div></div>
+    <div class="cc-body"><div class="cf-row"><span class="cf-label">Estado</span><div class="cf-val"><select class="status-opt" onchange="setClientField('${currentDay}','${uid}','status',this.value,'${nameEsc}')">${statusOpts(status)}</select></div></div><div class="cf-row"><span class="cf-label">Carga planeada</span><div class="cf-val"><input type="number" min="0" value="${carga}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','carga',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Entregues</span><div class="cf-val"><input type="number" min="0" value="${ent}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','entregues',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Não entregues</span><div class="cf-val"><input type="number" min="0" value="${nent}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','nentregues',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Saída do cais</span><div class="cf-val"><input type="time" value="${saida}" onchange="setClientField('${currentDay}','${uid}','saida',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Fecho / fim</span><div class="cf-val"><input type="time" value="${fim}" onchange="setClientField('${currentDay}','${uid}','fim',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Observações</span><div class="cf-val"><textarea placeholder="—" onchange="setClientField('${currentDay}','${uid}','obs',this.value,'${nameEsc}')">${obs}</textarea></div></div></div>
+    <div class="edr-bar-wrap"><div class="edr-bar-labels"><span id="lbl-${uid}">EDR: ${edrTxt}</span><span style="font-size:10px;color:var(--hint);">${carga?carga+' enc. planeadas':''}</span></div><div class="edr-track"><div class="edr-fill" id="fill-${uid}" style="width:${fillW}%;background:${fillClr};"></div></div></div>
+    <div class="cc-edit-foot" id="foot-${uid}">${editedBy?`Editado por ${editedBy} · ${timeAgo(editedAt)}`:'Ainda sem edições'}</div></div>`;});
+  grid.innerHTML=html;
+}
+window.addClient=function(){const list=getClientList(currentDay);const uid='custom-'+Date.now();list.push({uid,name:'Novo cliente',colaborador:'Colaborador'});dayData(currentDay).clientList=list;stampEdit(currentDay,'adicionou um cliente');queueSave(currentDay);renderClients();updateMini();};
+window.removeClient=function(idx){if(!confirm('Remover este cliente do dia?'))return;const list=getClientList(currentDay);const removed=list[idx];list.splice(idx,1);dayData(currentDay).clientList=list;stampEdit(currentDay,'removeu '+(removed?removed.name:'um cliente'));queueSave(currentDay);renderClients();updateMini();};
+window.updateClientMeta=function(idx,field,val){const list=getClientList(currentDay);if(!list[idx])return;list[idx][field]=val;dayData(currentDay).clientList=list;stampEdit(currentDay,'editou '+field);queueSave(currentDay);updateMini();};
+
+window.printReport=function(){
+  const list=getClientList(currentDay);const now=new Date();
+  const generated=now.toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' às '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const doneC=dayData(currentDay).done.length;const total=TASKS.length;const pct=Math.round(doneC/total*100);
+  const lateC=TASKS.filter(t=>!dayData(currentDay).done.includes(t.id)&&t2m(t.hora)<getNow()-10).length;
+  const pctClr=pct>=90?'#27500A':pct>=60?'#633806':'#791F1F';const pctBg=pct>=90?'#EAF3DE':pct>=60?'#FAEEDA':'#FCEBEB';
+  let clientsHtml='';
+  list.forEach(c=>{const uid=c.uid;const status=getF(currentDay,uid,'status','OK');const carga=getF(currentDay,uid,'carga','—');const ent=getF(currentDay,uid,'entregues','—');const nent=getF(currentDay,uid,'nentregues','—');const saida=getF(currentDay,uid,'saida','');const fim=getF(currentDay,uid,'fim','');const obs=getF(currentDay,uid,'obs','');const edr=calcEdr(currentDay,uid);const edrTxt=edr!==null?edr+'%':'—';const edrClr=edr===null?'#888':parseFloat(edr)>=95?'#27500A':parseFloat(edr)>=85?'#633806':'#791F1F';const edrBg=edr===null?'#eee':parseFloat(edr)>=95?'#EAF3DE':parseFloat(edr)>=85?'#FAEEDA':'#FCEBEB';const statusClr=status==='OK'?'#27500A':status==='Faltou'?'#791F1F':'#633806';const statusBg=status==='OK'?'#EAF3DE':status==='Faltou'?'#FCEBEB':'#FAEEDA';const fillW=edr!==null?Math.min(parseFloat(edr),100):0;
+    clientsHtml+=`<div style="border:1px solid #ddd;border-radius:8px;overflow:hidden;break-inside:avoid;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#f7f7f5;border-bottom:1px solid #ddd;"><div><div style="font-size:14px;font-weight:700;color:#111;">${c.name}</div><div style="font-size:11px;color:#666;margin-top:2px;">${c.colaborador}</div></div><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${statusBg};color:${statusClr};">${status}</span><span style="font-size:13px;font-weight:800;padding:3px 12px;border-radius:20px;background:${edrBg};color:${edrClr};">EDR ${edrTxt}</span></div></div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);padding:10px 14px;gap:4px 0;">${[['Carga',carga],['Entregues',ent],['Não entregues',nent],['Saída',saida||'—'],['Fecho',fim||'—']].map(([l,v])=>`<div style="padding:6px 8px 6px 0;border-right:1px solid #eee;margin-right:8px;"><div style="font-size:10px;color:#888;margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:700;color:#111;">${v}</div></div>`).join('')}</div>
+    ${obs?`<div style="padding:0 14px 10px;font-size:12px;color:#555;border-top:1px solid #eee;padding-top:8px;"><b>Obs:</b> ${obs}</div>`:''}
+    ${(carga!=='—'&&ent!=='—')?`<div style="padding:0 14px 12px;"><div style="height:6px;background:#e8e8e4;border-radius:3px;overflow:hidden;"><div style="width:${fillW}%;height:100%;background:${edrClr};border-radius:3px;"></div></div></div>`:''}
+    </div>`;});
+  const html=`<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>Relatório Traffic Logistics — ${fmtShort(currentDay)}</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:13px;padding:28px 32px;}@page{size:A4;margin:18mm 14mm;}@media print{body{padding:0;}.no-print{display:none!important;}}h1{font-size:20px;font-weight:800;}.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.kpi{background:#f7f7f5;border:1px solid #e0e0d8;border-radius:8px;padding:10px 14px;}.kpi-l{font-size:10px;color:#888;margin-bottom:4px;}.kpi-v{font-size:22px;font-weight:800;}.print-btn{margin-top:20px;padding:10px 24px;border-radius:20px;border:none;background:#378ADD;color:#fff;font-size:13px;font-weight:600;cursor:pointer;}</style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;"><div><h1>Relatório Diário — Traffic Logistics</h1><div style="font-size:12px;color:#666;margin-top:3px;">${fmtLong(currentDay)}</div><div style="font-size:11px;color:#999;margin-top:2px;">Gerado em: ${generated}</div></div><span style="font-size:18px;font-weight:800;padding:4px 14px;border-radius:20px;background:${pctBg};color:${pctClr};">${pct}% checklist</span></div>
+  <div class="kpi-row"><div class="kpi"><div class="kpi-l">Tarefas concluídas</div><div class="kpi-v" style="color:#27500A;">${doneC}</div></div><div class="kpi"><div class="kpi-l">Por fazer</div><div class="kpi-v" style="color:#791F1F;">${total-doneC}</div></div><div class="kpi"><div class="kpi-l">Em atraso</div><div class="kpi-v" style="color:#633806;">${lateC}</div></div><div class="kpi"><div class="kpi-l">Total de tarefas</div><div class="kpi-v">${total}</div></div></div>
+  <hr style="border:none;border-top:1px solid #ddd;margin:16px 0;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:10px;">Clientes do dia</div>
+  ${clientsHtml||'<p style="color:#888;">Sem clientes registados.</p>'}
+  <hr style="border:none;border-top:1px solid #ddd;margin:16px 0;"><div style="font-size:10px;color:#aaa;text-align:center;">Traffic Logistics · Relatório automático</div>
+  <div class="no-print" style="text-align:center;margin-top:20px;"><button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button></div></body></html>`;
+  const win=window.open('','_blank');if(!win){alert('Permite pop-ups para gerar o PDF.');return;}win.document.write(html);win.document.close();win.focus();
+};
+
+window.renderHistoryDay=async function(day){
+  const el=document.getElementById('hist-view');if(!day){el.innerHTML='<div class="hist-empty">Selecione um dia.</div>';return;}
+  el.innerHTML='<div class="hist-empty">A carregar...</div>';await loadDay(day);const d=cache[day];
+  if(!d||!d.done||!d.done.length){el.innerHTML=`<div class="hist-day-view"><div class="hist-empty">Sem dados para ${fmtShort(day)}.</div></div>`;return;}
+  const total=TASKS.length,pct=Math.round(d.done.length/total*100);
+  let html=`<div class="hist-day-view"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><strong style="font-size:14px;">${fmtLong(day)}</strong><span class="edr-badge ${pct>=90?'eg':pct>=60?'ew':'eb'}">${pct}% — ${d.done.length}/${total}</span></div>${d.lastEdit?`<div style="font-size:11px;color:var(--hint);margin-bottom:10px;">Última alteração: <b>${d.lastEdit.by}</b> — ${d.lastEdit.what} (${fmtTime(d.lastEdit.at)})</div>`:''}<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Checklist</div>`;
+  TASKS.forEach(t=>{const isDone=d.done.includes(t.id);const note=d.notes&&d.notes[t.id]?d.notes[t.id]:'';html+=`<div class="htask"><div class="hchk" style="background:${isDone?'var(--bg2)':'var(--bmd)'};"></div><span style="${!isDone?'color:var(--muted);text-decoration:line-through;':''}">${t.hora} — ${t.cliente}</span></div>`;if(note)html+=`<div class="hnote">Nota: ${note}</div>`;});
+  const list=d.clientList||DEFAULT_CLIENTS;
+  if(d.clients&&Object.keys(d.clients).length){html+=`<div style="margin-top:16px;border-top:0.5px solid var(--bmd);padding-top:12px;"><div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">Dados dos clientes</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;">`;list.forEach(c=>{const cd=d.clients[c.uid]||{};const cr=parseFloat(cd.carga)||0;const er=parseFloat(cd.entregues)||0;const edr=cr>0?((er/cr)*100).toFixed(1):null;const ecls=edrCls(edr);html+=`<div style="background:var(--s2);border-radius:var(--r);padding:10px 12px;border:0.5px solid var(--border);"><div style="font-size:12px;font-weight:600;margin-bottom:4px;">${c.name}</div><div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${c.colaborador}</div><div style="display:flex;justify-content:space-between;font-size:11px;"><span>Carga: <b>${cd.carga||'—'}</b></span><span>Entregues: <b>${cd.entregues||'—'}</b></span><span class="edr-badge ${ecls}" style="font-size:10px;padding:1px 6px;">${edr!==null?edr+'%':'—'}</span></div>${cd.obs?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${cd.obs}</div>`:''}</div>`;});html+='</div></div>';}
+  html+='</div>';el.innerHTML=html;
+};
+
+function isoDaysBack(n){const out=[];const base=new Date();for(let i=n-1;i>=0;i--){const d=new Date(base);d.setDate(d.getDate()-i);out.push(d.toISOString().slice(0,10));}return out;}
+window.renderAnalytics=async function(){
+  const range=parseInt(document.getElementById('an-range').value,10);const days=isoDaysBack(range);
+  ['heatmapBody','edrTrendBody','edrRankBody','complianceRankBody'].forEach(id=>document.getElementById(id).innerHTML='<div class="an-empty">A carregar...</div>');
+  for(const day of days){if(!cache[day])await loadDay(day);}
+  const compliance=days.map(day=>{const d=cache[day];const hasData=d&&d.done&&(d.done.length>0||Object.keys(d.clients||{}).length>0);const pct=hasData?Math.round((d.done.length/TASKS.length)*100):null;return{day,pct};});
+  let heatHtml='<div class="heat-cells">';compliance.forEach(c=>{const[,,dd]=c.day.split('-');let bg='var(--bmd)';if(c.pct!==null){bg=c.pct>=90?'var(--bg2)':c.pct>=60?'var(--bw)':'var(--bd)';}heatHtml+=`<div class="heat-cell" style="background:${bg};" title="${fmtShort(c.day)}: ${c.pct!==null?c.pct+'%':'sem dados'}">${parseInt(dd)}</div>`;});heatHtml+='</div>';document.getElementById('heatmapBody').innerHTML=heatHtml;
+  const withData=compliance.filter(c=>c.pct!==null).sort((a,b)=>b.pct-a.pct);
+  if(!withData.length){document.getElementById('complianceRankBody').innerHTML='<div class="an-empty">Sem dados suficientes.</div>';}else{let rh='';withData.forEach((c,i)=>{const clr=c.pct>=90?'var(--bg2)':c.pct>=60?'var(--bw)':'var(--bd)';rh+=`<div class="rank-row"><span class="rank-pos">${i+1}</span><span class="rank-name">${fmtShort(c.day)}</span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${c.pct}%;background:${clr};"></div></div><span class="rank-pct" style="color:${clr};">${c.pct}%</span></div>`;});document.getElementById('complianceRankBody').innerHTML=rh;}
+  const allC={};days.forEach(day=>{const d=cache[day];if(!d)return;const list=d.clientList||DEFAULT_CLIENTS;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const carga=parseFloat(cd.carga)||0;const ent=parseFloat(cd.entregues)||0;if(!carga)return;const edr=(ent/carga)*100;if(!allC[c.uid])allC[c.uid]={name:c.name,colaborador:c.colaborador,values:[]};allC[c.uid].values.push({day,edr});});});
+  const clientAvg=Object.entries(allC).map(([uid,info])=>({uid,name:info.name,colaborador:info.colaborador,avg:info.values.reduce((s,v)=>s+v.edr,0)/info.values.length})).sort((a,b)=>b.avg-a.avg);
+  if(!clientAvg.length){document.getElementById('edrRankBody').innerHTML='<div class="an-empty">Sem dados de carga/entregues.</div>';}else{let rh='';clientAvg.forEach((c,i)=>{const clr=c.avg>=95?'var(--bg2)':c.avg>=85?'var(--bw)':'var(--bd)';rh+=`<div class="rank-row"><span class="rank-pos">${i+1}</span><span class="rank-name">${c.name} <span style="color:var(--hint);font-weight:400;">— ${c.colaborador}</span></span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.min(c.avg,100)}%;background:${clr};"></div></div><span class="rank-pct" style="color:${clr};">${c.avg.toFixed(1)}%</span></div>`;});document.getElementById('edrRankBody').innerHTML=rh;}
+  const trendPts=days.map(day=>{const d=cache[day];if(!d)return{day,avg:null};const list=d.clientList||DEFAULT_CLIENTS;let sum=0,count=0;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const carga=parseFloat(cd.carga)||0;const ent=parseFloat(cd.entregues)||0;if(!carga)return;sum+=(ent/carga)*100;count++;});return{day,avg:count?sum/count:null};});
+  const validPts=trendPts.filter(p=>p.avg!==null);
+  if(!validPts.length){document.getElementById('edrTrendBody').innerHTML='<div class="an-empty">Sem dados suficientes.</div>';}
+  else{const w=Math.max(320,days.length*34),h=130,pad=24;const maxV=100,minV=Math.min(60,Math.floor(Math.min(...validPts.map(p=>p.avg))/10)*10);const xStep=(w-pad*2)/Math.max(days.length-1,1);const yFor=v=>h-pad-((v-minV)/(maxV-minV))*(h-pad*2);let pathD='',firstFound=false,circles='';trendPts.forEach((p,i)=>{const x=pad+i*xStep;if(p.avg===null)return;const y=yFor(p.avg);pathD+=(firstFound?' L':'M')+x+' '+y;firstFound=true;const clr=p.avg>=95?'var(--bg2)':p.avg>=85?'var(--bw)':'var(--bd)';circles+=`<circle cx="${x}" cy="${y}" r="3" fill="${clr}"><title>${fmtShort(p.day)}: ${p.avg.toFixed(1)}%</title></circle>`;});const svg=`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;"><line x1="${pad}" y1="${yFor(95)}" x2="${w-pad}" y2="${yFor(95)}" stroke="var(--bg2)" stroke-width="0.5" stroke-dasharray="3,3" opacity="0.5"/><text x="${w-pad}" y="${yFor(95)-4}" font-size="9" fill="var(--hint)" text-anchor="end">95%</text><path d="${pathD}" fill="none" stroke="var(--bi)" stroke-width="2"/>${circles}</svg>`;document.getElementById('edrTrendBody').innerHTML=svg;}
+};
+
+window.showTab=function(tab,btn){document.querySelectorAll('.content').forEach(c=>c.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById('tab-'+tab).classList.add('on');btn.classList.add('on');if(tab==='clientes'){renderClients();updateMini();}if(tab==='historico'){buildHistPicker();window.renderHistoryDay('');}if(tab==='analises'){window.renderAnalytics();}};
+
+(async function init(){
+  await ensureUserName();
+  setSyncLabel('A ligar...');
+  await loadDay(currentDay);
+  listenDay(currentDay);
+  setSyncLabel('Sincronizado ✓');
+  buildDayPicker();updateDateLabel();render();updateMini();renderLastEditBar();
+  document.getElementById('loadingOvl').style.display='none';
+  setInterval(()=>{render();renderLastEditBar();},30000);
+})();
+</script>
+</body>
+</html>
