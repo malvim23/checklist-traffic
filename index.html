@@ -260,6 +260,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
     <div style="display:flex;gap:8px;">
       <button class="add-btn" onclick="addClient()">+ Adicionar cliente</button>
       <button class="print-btn" onclick="printReport()">📄 Gerar Relatório PDF</button>
+      <button class="print-btn" style="background:var(--bg2);border-color:var(--bg2);" onclick="printEOD()">🌙 Relatório Fim de Dia</button>
     </div>
   </div>
   <div class="cc-grid" id="cc-grid"></div>
@@ -523,13 +524,24 @@ function updateMini(){const el=document.getElementById('mini-clients');if(!el)re
 function refreshEdr(day,uid){if(day!==currentDay)return;const edr=calcEdr(day,uid);const ecls=edrCls(edr);const txt=edr!==null?edr+'%':'—';const fillW=edr!==null?Math.min(parseFloat(edr),100):0;const fillClr=edrColor(edr);const pill=document.getElementById('pill-'+uid);const fill=document.getElementById('fill-'+uid);const lbl=document.getElementById('lbl-'+uid);const foot=document.getElementById('foot-'+uid);if(pill){pill.textContent=txt;pill.className='cc-edr-pill '+ecls;}if(fill){fill.style.width=fillW+'%';fill.style.background=fillClr;}if(lbl){lbl.textContent='EDR: '+txt;}if(foot){const ed=getF(currentDay,uid,'_editedBy','');const eat=getF(currentDay,uid,'_editedAt','');foot.textContent=ed?`Editado por ${ed} · ${timeAgo(eat)}`:'Ainda sem edições';}updateMini();renderLastEditBar();}
 window.setClientField=setClientField;
 
+// Auto-calcular não entregues
+window.autoNent=function(uid){
+  const carga=parseFloat(getF(currentDay,uid,'carga'))||0;
+  const ent=parseFloat(getF(currentDay,uid,'entregues'))||0;
+  if(!carga||!ent) return;
+  const nent=Math.max(0,carga-ent);
+  const inp=document.getElementById('nent-'+uid);
+  if(inp) inp.value=nent;
+  setClientField(currentDay,uid,'nentregues',String(nent),getClientList(currentDay).find(c=>c.uid===uid)?.name||uid);
+};
+
 function statusOpts(cur){const opts=['OK','Faltou','Sem carga','TPA sem sinal','Back-up externo','Back-up interno','Operação parcial','Aguardar dados'];return opts.map(o=>`<option${cur===o?' selected':''}>${o}</option>`).join('');}
 
 function renderClients(){
   updateDateLabel();const list=getClientList(currentDay);const grid=document.getElementById('cc-grid');if(!grid)return;let html='';
   list.forEach((c,idx)=>{const uid=c.uid;const status=getF(currentDay,uid,'status','OK');const carga=getF(currentDay,uid,'carga','');const ent=getF(currentDay,uid,'entregues','');const nent=getF(currentDay,uid,'nentregues','');const saida=getF(currentDay,uid,'saida','');const fim=getF(currentDay,uid,'fim','');const obs=getF(currentDay,uid,'obs','');const editedBy=getF(currentDay,uid,'_editedBy','');const editedAt=getF(currentDay,uid,'_editedAt','');const edr=calcEdr(currentDay,uid);const ecls=edrCls(edr);const edrTxt=edr!==null?edr+'%':'—';const fillW=edr!==null?Math.min(parseFloat(edr),100):0;const fillClr=edrColor(edr);const nameEsc=c.name.replace(/'/g,"\\'");
     html+=`<div class="cc" id="card-${uid}"><div class="cc-hdr"><div class="cc-hdr-left"><input class="cc-name-input" value="${c.name}" placeholder="Nome do cliente" onchange="updateClientMeta(${idx},'name',this.value)"><input class="cc-mot-input" value="${c.colaborador}" placeholder="Colaborador / motorista" onchange="updateClientMeta(${idx},'colaborador',this.value)"></div><div class="cc-hdr-right"><span class="cc-edr-pill ${ecls}" id="pill-${uid}">${edrTxt}</span><button class="rem-btn" onclick="removeClient(${idx})" title="Remover">−</button></div></div>
-    <div class="cc-body"><div class="cf-row"><span class="cf-label">Estado</span><div class="cf-val"><select class="status-opt" onchange="setClientField('${currentDay}','${uid}','status',this.value,'${nameEsc}')">${statusOpts(status)}</select></div></div><div class="cf-row"><span class="cf-label">Carga planeada</span><div class="cf-val"><input type="number" min="0" value="${carga}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','carga',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Entregues</span><div class="cf-val"><input type="number" min="0" value="${ent}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','entregues',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Não entregues</span><div class="cf-val"><input type="number" min="0" value="${nent}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','nentregues',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Saída do cais</span><div class="cf-val"><input type="time" value="${saida}" onchange="setClientField('${currentDay}','${uid}','saida',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Fecho / fim</span><div class="cf-val"><input type="time" value="${fim}" onchange="setClientField('${currentDay}','${uid}','fim',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Observações</span><div class="cf-val"><textarea placeholder="—" onchange="setClientField('${currentDay}','${uid}','obs',this.value,'${nameEsc}')">${obs}</textarea></div></div></div>
+    <div class="cc-body"><div class="cf-row"><span class="cf-label">Estado</span><div class="cf-val"><select class="status-opt" onchange="setClientField('${currentDay}','${uid}','status',this.value,'${nameEsc}')">${statusOpts(status)}</select></div></div>        <div class="cf-row"><span class="cf-label">Carga planeada</span><div class="cf-val"><input type="number" min="0" value="${carga}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','carga',this.value,'${nameEsc}');autoNent('${uid}')"></div></div><div class="cf-row"><span class="cf-label">Entregues</span><div class="cf-val"><input type="number" min="0" value="${ent}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','entregues',this.value,'${nameEsc}');autoNent('${uid}')"></div></div>        <div class="cf-row"><span class="cf-label">Não entregues</span><div class="cf-val"><input type="number" min="0" value="${nent}" placeholder="Auto" id="nent-${uid}" onchange="setClientField('${currentDay}','${uid}','nentregues',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Saída do cais</span><div class="cf-val"><input type="time" value="${saida}" onchange="setClientField('${currentDay}','${uid}','saida',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Fecho / fim</span><div class="cf-val"><input type="time" value="${fim}" onchange="setClientField('${currentDay}','${uid}','fim',this.value,'${nameEsc}')"></div></div><div class="cf-row"><span class="cf-label">Observações</span><div class="cf-val"><textarea placeholder="—" onchange="setClientField('${currentDay}','${uid}','obs',this.value,'${nameEsc}')">${obs}</textarea></div></div></div>
     <div class="edr-bar-wrap"><div class="edr-bar-labels"><span id="lbl-${uid}">EDR: ${edrTxt}</span><span style="font-size:10px;color:var(--hint);">${carga?carga+' enc. planeadas':''}</span></div><div class="edr-track"><div class="edr-fill" id="fill-${uid}" style="width:${fillW}%;background:${fillClr};"></div></div></div>
     <div class="cc-edit-foot" id="foot-${uid}">${editedBy?`Editado por ${editedBy} · ${timeAgo(editedAt)}`:'Ainda sem edições'}</div></div>`;});
   grid.innerHTML=html;
@@ -561,7 +573,122 @@ window.printReport=function(){
   const win=window.open('','_blank');if(!win){alert('Permite pop-ups para gerar o PDF.');return;}win.document.write(html);win.document.close();win.focus();
 };
 
-window.renderHistoryDay=async function(day){
+window.printEOD=function(){
+  const list=getClientList(currentDay);
+  const now=new Date();
+  const generated=now.toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' às '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const d=dayData(currentDay);
+  const doneIds=new Set(d.done);
+  const total=TASKS.length, doneC=doneIds.size, pct=Math.round(doneC/total*100);
+  const pctClr=pct>=90?'#27500A':pct>=60?'#633806':'#791F1F';
+  const pctBg=pct>=90?'#EAF3DE':pct>=60?'#FAEEDA':'#FCEBEB';
+
+  // Checklist por hora
+  const groups={};
+  TASKS.forEach(t=>{if(!groups[t.hora])groups[t.hora]=[];groups[t.hora].push(t);});
+  let checkHtml='';
+  Object.keys(groups).sort().forEach(h=>{
+    const list2=groups[h];const dc=list2.filter(t=>doneIds.has(t.id)).length;
+    checkHtml+=`<div style="margin-bottom:10px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#888;width:36px;">${h}</span><div style="flex:1;height:0.5px;background:#ddd;"></div><span style="font-size:10px;color:#aaa;">${dc}/${list2.length}</span></div>`;
+    list2.forEach(t=>{
+      const ok=doneIds.has(t.id);
+      checkHtml+=`<div style="display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:0.5px solid #f0f0f0;">
+        <div style="width:13px;height:13px;border-radius:3px;flex-shrink:0;background:${ok?'#639922':'#e0e0d8'};"></div>
+        <span style="font-size:11px;${!ok?'color:#bbb;text-decoration:line-through;':''}">${t.cliente} — ${t.obs.substring(0,60)}${t.obs.length>60?'...':''}</span>
+        <span style="margin-left:auto;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:${ok?'#EAF3DE':'#FCEBEB'};color:${ok?'#27500A':'#791F1F'};flex-shrink:0;">${ok?'✓':'✗'}</span>
+      </div>`;
+      if(d.notes&&d.notes[t.id]) checkHtml+=`<div style="font-size:10px;color:#888;padding:1px 0 2px 20px;">📝 ${d.notes[t.id]}</div>`;
+    });
+    checkHtml+='</div>';
+  });
+
+  // Clientes
+  let clientsHtml='';
+  list.forEach(c=>{
+    const uid=c.uid;const status=getF(currentDay,uid,'status','OK');const carga=getF(currentDay,uid,'carga','—');const ent=getF(currentDay,uid,'entregues','—');const nent=getF(currentDay,uid,'nentregues','—');const saida=getF(currentDay,uid,'saida','');const fim=getF(currentDay,uid,'fim','');const obs=getF(currentDay,uid,'obs','');
+    const edr=calcEdr(currentDay,uid);const edrTxt=edr!==null?edr+'%':'—';
+    const edrClr=edr===null?'#888':parseFloat(edr)>=95?'#27500A':parseFloat(edr)>=85?'#633806':'#791F1F';
+    const edrBg=edr===null?'#eee':parseFloat(edr)>=95?'#EAF3DE':parseFloat(edr)>=85?'#FAEEDA':'#FCEBEB';
+    const statusClr=status==='OK'?'#27500A':status==='Faltou'?'#791F1F':'#633806';
+    const statusBg=status==='OK'?'#EAF3DE':status==='Faltou'?'#FCEBEB':'#FAEEDA';
+    const fillW=edr!==null?Math.min(parseFloat(edr),100):0;
+    clientsHtml+=`<div style="border:1px solid #e8e8e4;border-radius:8px;overflow:hidden;break-inside:avoid;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f7f7f5;border-bottom:1px solid #e8e8e4;">
+        <div><div style="font-size:13px;font-weight:700;color:#111;">${c.name}</div><div style="font-size:10px;color:#666;">${c.colaborador}</div></div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${statusBg};color:${statusClr};">${status}</span>
+          <span style="font-size:12px;font-weight:800;padding:2px 10px;border-radius:20px;background:${edrBg};color:${edrClr};">EDR ${edrTxt}</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);padding:8px 12px;gap:4px 0;">
+        ${[['Carga',carga],['Entregues',ent],['Não entregues',nent],['Saída',saida||'—'],['Fecho',fim||'—']].map(([l,v])=>`<div style="padding:4px 6px 4px 0;"><div style="font-size:9px;color:#888;margin-bottom:1px;">${l}</div><div style="font-size:13px;font-weight:700;color:#111;">${v}</div></div>`).join('')}
+      </div>
+      <div style="padding:0 12px 8px;"><div style="height:5px;background:#e8e8e4;border-radius:3px;overflow:hidden;"><div style="width:${fillW}%;height:100%;background:${edrClr};border-radius:3px;"></div></div></div>
+      ${obs?`<div style="padding:0 12px 8px;font-size:11px;color:#555;"><b>Obs:</b> ${obs}</div>`:''}
+    </div>`;
+  });
+
+  // Totais
+  let totalCarga=0,totalEnt=0,totalNent=0,clientesOK=0;
+  list.forEach(c=>{
+    const carga=parseFloat(getF(currentDay,c.uid,'carga'))||0;
+    const ent=parseFloat(getF(currentDay,c.uid,'entregues'))||0;
+    const nent=parseFloat(getF(currentDay,c.uid,'nentregues'))||0;
+    const status=getF(currentDay,c.uid,'status','OK');
+    totalCarga+=carga;totalEnt+=ent;totalNent+=nent;
+    if(status==='OK')clientesOK++;
+  });
+  const totalEdr=totalCarga>0?((totalEnt/totalCarga)*100).toFixed(1):null;
+  const tedrClr=totalEdr===null?'#888':parseFloat(totalEdr)>=95?'#27500A':parseFloat(totalEdr)>=85?'#633806':'#791F1F';
+  const tedrBg=totalEdr===null?'#eee':parseFloat(totalEdr)>=95?'#EAF3DE':parseFloat(totalEdr)>=85?'#FAEEDA':'#FCEBEB';
+
+  const html=`<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>Relatório Fim de Dia — ${fmtShort(currentDay)}</title>
+  <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:12px;padding:24px 28px;}
+  @page{size:A4;margin:14mm 12mm;}@media print{body{padding:0;}.no-print{display:none!important;}}
+  h1{font-size:18px;font-weight:800;}.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin:16px 0 8px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:4px;}
+  .kpi{background:#f7f7f5;border:1px solid #e8e8e4;border-radius:6px;padding:8px 10px;}
+  .kpi-l{font-size:9px;color:#888;margin-bottom:2px;}.kpi-v{font-size:18px;font-weight:800;}
+  .print-btn{margin-top:16px;padding:9px 22px;border-radius:20px;border:none;background:#378ADD;color:#fff;font-size:12px;font-weight:600;cursor:pointer;}
+  hr{border:none;border-top:1px solid #e8e8e4;margin:14px 0;}
+  </style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+    <div>
+      <h1>🌙 Relatório Fim de Dia — Traffic Logistics</h1>
+      <div style="font-size:11px;color:#666;margin-top:3px;">${fmtLong(currentDay)}</div>
+      <div style="font-size:10px;color:#999;margin-top:1px;">Gerado em: ${generated}</div>
+    </div>
+    <span style="font-size:16px;font-weight:800;padding:4px 14px;border-radius:20px;background:${pctBg};color:${pctClr};">${pct}% checklist</span>
+  </div>
+
+  <div class="section-title">Resumo global</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-l">Tarefas feitas</div><div class="kpi-v" style="color:#27500A;">${doneC}/${total}</div></div>
+    <div class="kpi"><div class="kpi-l">Carga total</div><div class="kpi-v">${totalCarga||'—'}</div></div>
+    <div class="kpi"><div class="kpi-l">Entregues</div><div class="kpi-v" style="color:#27500A;">${totalEnt||'—'}</div></div>
+    <div class="kpi"><div class="kpi-l">Não entregues</div><div class="kpi-v" style="color:#791F1F;">${totalNent||'—'}</div></div>
+    <div class="kpi"><div class="kpi-l">EDR global</div><div class="kpi-v" style="background:${tedrBg};color:${tedrClr};border-radius:6px;padding:1px 6px;display:inline-block;">${totalEdr!==null?totalEdr+'%':'—'}</div></div>
+    <div class="kpi"><div class="kpi-l">Clientes OK</div><div class="kpi-v" style="color:#27500A;">${clientesOK}/${list.length}</div></div>
+  </div>
+
+  <hr>
+  <div class="section-title">Clientes do dia</div>
+  ${clientsHtml||'<p style="color:#aaa;font-size:12px;">Sem clientes registados.</p>'}
+
+  <hr>
+  <div class="section-title">Checklist completo</div>
+  ${checkHtml}
+
+  <hr>
+  <div style="font-size:9px;color:#aaa;text-align:center;">Traffic Logistics · Relatório Fim de Dia · ${fmtShort(currentDay)}</div>
+  <div class="no-print" style="text-align:center;margin-top:16px;"><button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button></div>
+  </body></html>`;
+
+  const win=window.open('','_blank');
+  if(!win){alert('Permite pop-ups para gerar o relatório.');return;}
+  win.document.write(html);win.document.close();win.focus();
+};
+
   const el=document.getElementById('hist-view');if(!day){el.innerHTML='<div class="hist-empty">Selecione um dia.</div>';return;}
   el.innerHTML='<div class="hist-empty">A carregar...</div>';await loadDay(day);const d=cache[day];
   if(!d||!d.done||!d.done.length){el.innerHTML=`<div class="hist-day-view"><div class="hist-empty">Sem dados para ${fmtShort(day)}.</div></div>`;return;}
