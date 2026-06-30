@@ -183,6 +183,9 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 .modal-box .btn-pri{background:var(--bi);color:#fff;}
 .modal-box .btn-sec{background:var(--s2);color:var(--text);}
 .modal-box .btn-danger{background:var(--bd);color:#fff;}
+.dow-chip{display:flex;align-items:center;gap:4px;font-size:11px;padding:4px 8px;border-radius:14px;border:0.5px solid var(--bmd);background:var(--s2);cursor:pointer;user-select:none;}
+.dow-chip input{width:auto;margin:0;padding:0;}
+.dow-badge{font-size:9px;font-weight:600;padding:1px 5px;border-radius:8px;background:var(--si);color:var(--ti);margin-left:4px;}
 .loading-ovl{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
 .loading-spinner{width:32px;height:32px;border:3px solid var(--bmd);border-top-color:var(--bi);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -220,8 +223,20 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
     </select>
     <select id="nt-scope">
       <option value="day">Só este dia</option>
-      <option value="permanent">Permanente (todos os dias)</option>
+      <option value="permanent">Permanente</option>
     </select>
+    <div id="nt-days-wrap" style="display:none;margin-top:6px;">
+      <p style="margin-bottom:6px;">Em que dias da semana?</p>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">
+        <label class="dow-chip"><input type="checkbox" value="1" checked> Seg</label>
+        <label class="dow-chip"><input type="checkbox" value="2" checked> Ter</label>
+        <label class="dow-chip"><input type="checkbox" value="3" checked> Qua</label>
+        <label class="dow-chip"><input type="checkbox" value="4" checked> Qui</label>
+        <label class="dow-chip"><input type="checkbox" value="5" checked> Sex</label>
+        <label class="dow-chip"><input type="checkbox" value="6" checked> Sáb</label>
+        <label class="dow-chip"><input type="checkbox" value="0" checked> Dom</label>
+      </div>
+    </div>
     <div class="btn-row">
       <button class="btn-sec" onclick="closeAddTask()">Cancelar</button>
       <button class="btn-pri" onclick="confirmAddTask()">Adicionar</button>
@@ -525,6 +540,8 @@ function saveConfig(){
 let cache={},unsubscribes={},currentDay=todayISO(),currentFilter='todos',expanded={},myName=null,saveTimer=null;
 
 function todayISO(){return new Date().toISOString().slice(0,10);}
+function dowOf(iso){const[y,m,d]=iso.split('-');return new Date(y,m-1,d).getDay();}
+function dowLbl(arr){if(!arr||arr.length===7)return'';const n=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];return arr.slice().sort().map(d=>n[d]).join(', ');}
 function blankDay(){return {done:[],notes:{},clients:{},clientList:null,lastEdit:null,customTasks:[],removedTaskIds:[]};}
 function dayRef(day){return doc(db,'dias',day);}
 const histCol=collection(db,'historico');
@@ -553,8 +570,10 @@ function dayData(day){if(!cache[day])cache[day]=blankDay();if(!cache[day].custom
 function getClientList(day){const d=dayData(day);return d.clientList?d.clientList:BASE_CLIENTS.map(c=>({...c}));}
 function getAllTasks(day){
   const d=dayData(day);const removed=new Set(d.removedTaskIds||[]);
-  const base=BASE_TASKS.filter(t=>!removed.has(t.id));
-  return [...base,...(d.customTasks||[])].sort((a,b)=>a.hora.localeCompare(b.hora)||a.cliente.localeCompare(b.cliente));
+  const dow=dowOf(day);
+  const base=BASE_TASKS.filter(t=>!removed.has(t.id)&&(!t.dow||t.dow.length===7||t.dow.includes(dow)));
+  const custom=(d.customTasks||[]).filter(t=>!t.dow||t.dow.length===7||t.dow.includes(dow));
+  return [...base,...custom].sort((a,b)=>a.hora.localeCompare(b.hora)||a.cliente.localeCompare(b.cliente));
 }
 function stampEdit(day,what){dayData(day).lastEdit={by:myName||'Alguém',at:new Date().toISOString(),what};}
 function setDone(day,id,val,label){const d=dayData(day);if(val&&!d.done.includes(id))d.done.push(id);if(!val)d.done=d.done.filter(x=>x!==id);stampEdit(day,(val?'marcou ':'desmarcou ')+'"'+label+'"');queueSave(day);}
@@ -603,16 +622,20 @@ function updateDateLabel(){document.getElementById('hdate').textContent=currentD
 window.switchDay=async function(day){currentDay=day;buildDayPicker();updateDateLabel();setSyncLabel('A carregar...');await loadDay(day);setSyncLabel('Sincronizado ✓');listenDay(day);render();updateMini();renderLastEditBar();if(document.getElementById('tab-clientes').classList.contains('on'))renderClients();};
 
 // ── ADD / REMOVE TASKS (com escolha de permanente ou só hoje) ─────────────
-window.openAddTask=function(){document.getElementById('addTaskModal').style.display='flex';document.getElementById('nt-hora').value='';document.getElementById('nt-cliente').value='';document.getElementById('nt-obs').value='';document.getElementById('nt-scope').value='day';};
+window.openAddTask=function(){document.getElementById('addTaskModal').style.display='flex';document.getElementById('nt-hora').value='';document.getElementById('nt-cliente').value='';document.getElementById('nt-obs').value='';document.getElementById('nt-scope').value='day';document.getElementById('nt-days-wrap').style.display='none';document.querySelectorAll('#nt-days-wrap input').forEach(c=>c.checked=true);};
 window.closeAddTask=function(){document.getElementById('addTaskModal').style.display='none';};
+document.getElementById('nt-scope').addEventListener('change',function(){document.getElementById('nt-days-wrap').style.display=this.value==='permanent'?'block':'none';});
+function getSelectedDows(){const cks=document.querySelectorAll('#nt-days-wrap input:checked');return Array.from(cks).map(c=>parseInt(c.value));}
 window.confirmAddTask=function(){
   const hora=document.getElementById('nt-hora').value;const cliente=document.getElementById('nt-cliente').value.trim();const obs=document.getElementById('nt-obs').value.trim();const tipo=document.getElementById('nt-tipo').value;const scope=document.getElementById('nt-scope').value;
   if(!hora||!cliente){alert('Hora e cliente são obrigatórios.');return;}
   if(scope==='permanent'){
+    const dow=getSelectedDows();
+    if(!dow.length){alert('Seleciona pelo menos um dia da semana.');return;}
     const newId=Math.max(0,...BASE_TASKS.map(t=>typeof t.id==='number'?t.id:0))+1;
-    BASE_TASKS.push({id:newId,hora,cliente,obs,tipo});
+    BASE_TASKS.push({id:newId,hora,cliente,obs,tipo,dow:dow.length===7?null:dow});
     saveConfig();
-    logHistory('task','Tarefa permanente adicionada',`${hora} — ${cliente}`);
+    logHistory('task','Tarefa permanente adicionada',`${hora} — ${cliente}${dow.length<7?' ('+dowLbl(dow)+')':''}`);
   }else{
     const d=dayData(currentDay);if(!d.customTasks)d.customTasks=[];
     const newId='c-'+Date.now();
@@ -673,7 +696,7 @@ function render(){
       html+=`<div class="task${isDone?' done':''}${isLate?' late':''}">
         <div class="chk${isDone?' on':''}" onclick="toggleDone(${idStr},'${labelEsc}')"><svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></div>
         <div class="tdot ${dotCls(t,isDone,now)}"></div>
-        <div class="tinfo"><div class="tname">${t.cliente}</div><div class="tobs">${t.obs||''}</div>
+        <div class="tinfo"><div class="tname">${t.cliente}${t.dow&&t.dow.length<7?`<span class="dow-badge">${dowLbl(t.dow)}</span>`:''}</div><div class="tobs">${t.obs||''}</div>
           ${exp?`<div class="tnote-wrap"><textarea placeholder="Nota..." onchange="setNote('${currentDay}',${idStr},this.value,'${labelEsc}')">${note}</textarea></div>`:''}
         </div>
         <div class="tright">
