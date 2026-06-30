@@ -111,15 +111,11 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .mini-mot{font-size:10px;color:var(--muted);}
 .edr-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0;}
 .eg{background:var(--sg);color:var(--tg);}.ew{background:var(--sw);color:var(--tw);}.eb{background:var(--sd);color:var(--td);}.ez{background:var(--s2);color:var(--hint);}
-/* Add task form */
 .add-task-form{background:var(--s2);border:0.5px solid var(--bmd);border-radius:var(--r);padding:10px 12px;margin-top:10px;}
-.add-task-form input,.add-task-form select,.add-task-form textarea{width:100%;margin-bottom:6px;}
-.add-task-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.add-task-form button{font-size:11px;padding:5px 12px;border-radius:20px;border:none;background:var(--bi);color:#fff;}
-/* Clients */
 .clients-panel{padding:14px 18px;}
 .cp-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
 .add-btn{display:flex;align-items:center;gap:6px;font-size:12px;padding:6px 14px;border-radius:20px;border:0.5px solid var(--bmd);background:var(--surface);color:var(--text);}
+.add-btn:hover{background:var(--s2);}
 .print-btn{font-size:12px;padding:6px 14px;border-radius:20px;border:none;color:#fff;cursor:pointer;}
 .client-table-wrap{overflow-x:auto;}
 .client-table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -143,7 +139,6 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .drag-handle:active{cursor:grabbing;}
 tr.dragging{opacity:.4;}
 tr.drag-over td{border-top:2px solid var(--bi)!important;}
-/* History */
 .hist-wrap{padding:14px 18px;}
 .hist-table-wrap{overflow-x:auto;}
 .hist-table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -157,7 +152,6 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 .hb-task{background:var(--sp);color:var(--tp);}
 .hb-order{background:var(--s2);color:var(--muted);}
 .hist-empty{font-size:13px;color:var(--hint);text-align:center;padding:30px 0;}
-/* Analytics */
 .an-wrap{padding:14px 18px;}
 .an-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;}
 @media(max-width:900px){.an-grid{grid-template-columns:1fr;}}
@@ -178,7 +172,6 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 .rank-bar{height:100%;border-radius:3px;}
 .rank-pct{font-size:11px;font-weight:700;width:42px;text-align:right;}
 .an-empty{font-size:12px;color:var(--hint);text-align:center;padding:30px 0;}
-/* Modals */
 .modal-ovl{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:300;}
 .modal-box{background:var(--surface);border-radius:var(--rl);padding:24px 26px;width:340px;box-shadow:0 12px 30px rgba(0,0,0,0.25);}
 .modal-box h3{font-size:15px;margin-bottom:6px;}
@@ -189,6 +182,7 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 .modal-box .btn-row button{flex:1;padding:9px;border-radius:8px;border:none;font-size:13px;font-weight:600;}
 .modal-box .btn-pri{background:var(--bi);color:#fff;}
 .modal-box .btn-sec{background:var(--s2);color:var(--text);}
+.modal-box .btn-danger{background:var(--bd);color:#fff;}
 .loading-ovl{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
 .loading-spinner{width:32px;height:32px;border:3px solid var(--bmd);border-top-color:var(--bi);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -213,7 +207,7 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 <div id="addTaskModal" class="modal-ovl" style="display:none;">
   <div class="modal-box">
     <h3>➕ Adicionar tarefa</h3>
-    <p>A tarefa será adicionada ao checklist do dia selecionado.</p>
+    <p>Escolhe se a tarefa é só para hoje ou permanente no checklist base.</p>
     <input type="time" id="nt-hora" placeholder="Hora">
     <input type="text" id="nt-cliente" placeholder="Cliente / nome da tarefa" maxlength="60">
     <textarea id="nt-obs" placeholder="Descrição / observação" maxlength="200"></textarea>
@@ -224,9 +218,28 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
       <option value="confirmacao">Confirmação</option>
       <option value="custom">Outro</option>
     </select>
+    <select id="nt-scope">
+      <option value="day">Só este dia</option>
+      <option value="permanent">Permanente (todos os dias)</option>
+    </select>
     <div class="btn-row">
       <button class="btn-sec" onclick="closeAddTask()">Cancelar</button>
       <button class="btn-pri" onclick="confirmAddTask()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div id="delTaskModal" class="modal-ovl" style="display:none;">
+  <div class="modal-box">
+    <h3>🗑 Remover tarefa</h3>
+    <p id="delTaskLabel">Como queres remover esta tarefa?</p>
+    <select id="del-scope">
+      <option value="day">Apenas hoje</option>
+      <option value="permanent">Permanentemente (todos os dias)</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn-sec" onclick="closeDelTask()">Cancelar</button>
+      <button class="btn-danger" onclick="confirmDelTask()">Remover</button>
     </div>
   </div>
 </div>
@@ -265,7 +278,6 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
   <button class="tab" onclick="showTab('analises',this)">Análises</button>
 </div>
 
-<!-- CHECKLIST -->
 <div class="content on" id="tab-checklist">
 <div class="split">
   <div class="cl-wrap">
@@ -292,7 +304,6 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 </div>
 </div>
 
-<!-- CLIENTES -->
 <div class="content" id="tab-clientes">
 <div class="clients-panel">
   <div class="cp-topbar">
@@ -303,7 +314,7 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
       <button class="print-btn" style="background:var(--bg2);" onclick="printEOD()">🌙 Fim de Dia</button>
     </div>
   </div>
-  <div style="font-size:11px;color:var(--hint);margin-bottom:10px;">⠿ Arrasta as linhas para reordenar · 🗑️ Remove permanentemente da lista base</div>
+  <div style="font-size:11px;color:var(--hint);margin-bottom:10px;">⠿ Arrasta para reordenar (aplica-se a todos os dias) · 🗑️ Remove permanentemente</div>
   <div class="client-table-wrap">
     <table class="client-table" id="client-table">
       <thead>
@@ -312,7 +323,6 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
           <th>Cliente / Colaborador</th>
           <th>Estado</th>
           <th>Encomendas</th>
-          <th>Carga</th>
           <th>Saída do Cais</th>
           <th>Entregues</th>
           <th>Hora de Fim</th>
@@ -328,7 +338,6 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 </div>
 </div>
 
-<!-- HISTÓRICO -->
 <div class="content" id="tab-historico">
 <div class="hist-wrap">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
@@ -347,21 +356,13 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
   </div>
   <div class="hist-table-wrap">
     <table class="hist-table">
-      <thead>
-        <tr>
-          <th>Data/Hora</th>
-          <th>Utilizador</th>
-          <th>Ação</th>
-          <th>Detalhes</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Data/Hora</th><th>Utilizador</th><th>Ação</th><th>Detalhes</th></tr></thead>
       <tbody id="hist-tbody"><tr><td colspan="4" class="hist-empty">A carregar...</td></tr></tbody>
     </table>
   </div>
 </div>
 </div>
 
-<!-- ANÁLISES -->
 <div class="content" id="tab-analises">
 <div class="an-wrap">
   <div class="an-controls">
@@ -416,17 +417,12 @@ const fireApp=initializeApp(firebaseConfig);
 const db=getFirestore(fireApp);
 
 // ── THEME ─────────────────────────────────────────────────────────────────
-function applyTheme(dark){
-  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
-  const btn=document.getElementById('themeBtn'),lbl=document.getElementById('theme-label');
-  if(btn)btn.classList.toggle('dark',dark);if(lbl)lbl.textContent=dark?'🌙':'☀️';
-  try{localStorage.setItem('tl_theme',dark?'dark':'light');}catch(e){}
-}
+function applyTheme(dark){document.documentElement.setAttribute('data-theme',dark?'dark':'light');const btn=document.getElementById('themeBtn'),lbl=document.getElementById('theme-label');if(btn)btn.classList.toggle('dark',dark);if(lbl)lbl.textContent=dark?'🌙':'☀️';try{localStorage.setItem('tl_theme',dark?'dark':'light');}catch(e){}}
 window.toggleTheme=function(){applyTheme(document.documentElement.getAttribute('data-theme')!=='dark');};
 (function(){let p='light';try{p=localStorage.getItem('tl_theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}catch(e){}applyTheme(p==='dark');})();
 
-// ── BASE TASKS ────────────────────────────────────────────────────────────
-const BASE_TASKS=[
+// ── BASE TASKS (fallback seed — real source is Firestore 'config/baseTasks') ─
+const SEED_TASKS=[
   {id:1,hora:'08:00',cliente:'GPS Carrinhas',tipo:'confirmacao',obs:'Confirmar se carrinhas dormiram no local da operação'},
   {id:2,hora:'08:00',cliente:'CML',tipo:'presenca',obs:'Confirmação presença. Inserir quadro presenças no grupo OPS CML'},
   {id:3,hora:'08:00',cliente:'CTT',tipo:'presenca',obs:'Confirmação presença. Inserir quadro presenças no grupo'},
@@ -486,7 +482,7 @@ const BASE_TASKS=[
   {id:57,hora:'23:00',cliente:'Traffic Logistics',tipo:'ps',obs:'Enviar no grupo OPS TRAFFIC — Quadro PS final com números e horários'},
   {id:58,hora:'23:30',cliente:'CDL / CSC',tipo:'numeros',obs:'PS final. Inserir quadro Números Mensais + quadro no grupo CDL/CSC OPS DE'},
 ];
-const DEFAULT_CLIENTS=[
+const SEED_CLIENTS=[
   {uid:'dhl-alg',name:'DHL Parcel Algarve',colaborador:'Paulo'},
   {uid:'dhl-vr',name:'DHL Parcel Vila Real',colaborador:'Lito'},
   {uid:'gls-doug',name:'GLS',colaborador:'Douglas'},
@@ -502,16 +498,37 @@ const DEFAULT_CLIENTS=[
   {uid:'ue-por',name:'Uber Eats',colaborador:'Portalegre'},
 ];
 
+// ── GLOBAL CONFIG (shared base, persists across all days) ──────────────────
+const configRef=doc(db,'config','base');
+let BASE_TASKS=[...SEED_TASKS];
+let BASE_CLIENTS=[...SEED_CLIENTS];
+let configLoaded=false;
+
+async function loadConfig(){
+  try{
+    const snap=await getDoc(configRef);
+    if(snap.exists()){
+      const data=snap.data();
+      if(data.tasks&&data.tasks.length)BASE_TASKS=data.tasks;
+      if(data.clients&&data.clients.length)BASE_CLIENTS=data.clients;
+    }else{
+      await setDoc(configRef,{tasks:BASE_TASKS,clients:BASE_CLIENTS});
+    }
+  }catch(e){console.error('config load error',e);}
+  configLoaded=true;
+}
+function saveConfig(){
+  try{setDoc(configRef,{tasks:BASE_TASKS,clients:BASE_CLIENTS});}catch(e){}
+}
+
 // ── STATE ─────────────────────────────────────────────────────────────────
 let cache={},unsubscribes={},currentDay=todayISO(),currentFilter='todos',expanded={},myName=null,saveTimer=null;
-let customTasks=[]; // per-day extra tasks stored in day doc
 
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function blankDay(){return {done:[],notes:{},clients:{},clientList:null,lastEdit:null,customTasks:[],removedTaskIds:[]};}
 function dayRef(day){return doc(db,'dias',day);}
 const histCol=collection(db,'historico');
 
-// sync helpers
 function setSyncLabel(txt,err=false){const l=document.getElementById('sync-lbl'),d=document.getElementById('syncDot');if(!l||!d)return;l.textContent=txt;d.className='sync-dot'+(err?' error':'');}
 function setSyncing(){const d=document.getElementById('syncDot');if(d)d.className='sync-dot syncing';setSyncLabel('A guardar...');}
 
@@ -520,10 +537,7 @@ async function loadDay(day){
   try{const snap=await getDoc(dayRef(day));cache[day]=snap.exists()?snap.data():blankDay();if(!cache[day].customTasks)cache[day].customTasks=[];if(!cache[day].removedTaskIds)cache[day].removedTaskIds=[];}
   catch(e){cache[day]=blankDay();setSyncLabel('Erro de ligação',true);}
 }
-function queueSave(day){
-  setSyncing();clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{try{await setDoc(dayRef(day),cache[day]);setSyncLabel('Sincronizado ✓');}catch(e){setSyncLabel('Erro ao guardar',true);}},600);
-}
+function queueSave(day){setSyncing();clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{await setDoc(dayRef(day),cache[day]);setSyncLabel('Sincronizado ✓');}catch(e){setSyncLabel('Erro ao guardar',true);}},600);}
 function listenDay(day){
   if(unsubscribes[day])return;
   unsubscribes[day]=onSnapshot(dayRef(day),snap=>{
@@ -533,17 +547,12 @@ function listenDay(day){
     if(day===currentDay){render();updateMini();renderLastEditBar();if(document.getElementById('tab-clientes').classList.contains('on'))renderClients();}
   },()=>setSyncLabel('Erro de ligação',true));
 }
-
-// history log
-async function logHistory(type,action,details){
-  try{await addDoc(histCol,{ts:new Date().toISOString(),user:myName||'Alguém',type,action,details,day:currentDay});}catch(e){}
-}
+async function logHistory(type,action,details){try{await addDoc(histCol,{ts:new Date().toISOString(),user:myName||'Alguém',type,action,details,day:currentDay});}catch(e){}}
 
 function dayData(day){if(!cache[day])cache[day]=blankDay();if(!cache[day].customTasks)cache[day].customTasks=[];if(!cache[day].removedTaskIds)cache[day].removedTaskIds=[];return cache[day];}
-function getClientList(day){const d=dayData(day);return d.clientList?d.clientList:DEFAULT_CLIENTS.map(c=>({...c}));}
+function getClientList(day){const d=dayData(day);return d.clientList?d.clientList:BASE_CLIENTS.map(c=>({...c}));}
 function getAllTasks(day){
-  const d=dayData(day);
-  const removed=new Set(d.removedTaskIds||[]);
+  const d=dayData(day);const removed=new Set(d.removedTaskIds||[]);
   const base=BASE_TASKS.filter(t=>!removed.has(t.id));
   return [...base,...(d.customTasks||[])].sort((a,b)=>a.hora.localeCompare(b.hora)||a.cliente.localeCompare(b.cliente));
 }
@@ -558,12 +567,12 @@ function setClientField(day,uid,field,val,lbl){
 }
 function getF(day,uid,field,def=''){const d=dayData(day);return(d.clients[uid]&&d.clients[uid][field]!==undefined)?d.clients[uid][field]:def;}
 
-// auto nent
+// auto nent — now based on "encomendas" (planned orders) instead of separate "carga"
 function autoNent(uid){
-  const carga=parseFloat(getF(currentDay,uid,'carga'))||0;
+  const enc=parseFloat(getF(currentDay,uid,'encomendas'))||0;
   const ent=parseFloat(getF(currentDay,uid,'entregues'))||0;
-  if(!carga)return;
-  const nent=Math.max(0,carga-ent);
+  if(!enc)return;
+  const nent=Math.max(0,enc-ent);
   const inp=document.getElementById('nent-'+uid);if(inp)inp.value=nent;
   const list=getClientList(currentDay);
   setClientField(currentDay,uid,'nentregues',String(nent),(list.find(c=>c.uid===uid)||{}).name||uid);
@@ -593,30 +602,58 @@ function buildHistDayFilter(){const sel=document.getElementById('hist-day-filter
 function updateDateLabel(){document.getElementById('hdate').textContent=currentDay===todayISO()?'Hoje — '+fmtLong(currentDay):fmtLong(currentDay);const lbl=document.getElementById('clients-day-label');if(lbl)lbl.textContent='Clientes do dia — '+fmtShort(currentDay);}
 window.switchDay=async function(day){currentDay=day;buildDayPicker();updateDateLabel();setSyncLabel('A carregar...');await loadDay(day);setSyncLabel('Sincronizado ✓');listenDay(day);render();updateMini();renderLastEditBar();if(document.getElementById('tab-clientes').classList.contains('on'))renderClients();};
 
-// ── ADD / REMOVE TASKS ────────────────────────────────────────────────────
-window.openAddTask=function(){document.getElementById('addTaskModal').style.display='flex';document.getElementById('nt-hora').value='';document.getElementById('nt-cliente').value='';document.getElementById('nt-obs').value='';};
+// ── ADD / REMOVE TASKS (com escolha de permanente ou só hoje) ─────────────
+window.openAddTask=function(){document.getElementById('addTaskModal').style.display='flex';document.getElementById('nt-hora').value='';document.getElementById('nt-cliente').value='';document.getElementById('nt-obs').value='';document.getElementById('nt-scope').value='day';};
 window.closeAddTask=function(){document.getElementById('addTaskModal').style.display='none';};
 window.confirmAddTask=function(){
-  const hora=document.getElementById('nt-hora').value;const cliente=document.getElementById('nt-cliente').value.trim();const obs=document.getElementById('nt-obs').value.trim();const tipo=document.getElementById('nt-tipo').value;
+  const hora=document.getElementById('nt-hora').value;const cliente=document.getElementById('nt-cliente').value.trim();const obs=document.getElementById('nt-obs').value.trim();const tipo=document.getElementById('nt-tipo').value;const scope=document.getElementById('nt-scope').value;
   if(!hora||!cliente){alert('Hora e cliente são obrigatórios.');return;}
-  const d=dayData(currentDay);if(!d.customTasks)d.customTasks=[];
-  const newId='c-'+Date.now();
-  d.customTasks.push({id:newId,hora,cliente,obs,tipo});
-  stampEdit(currentDay,'adicionou tarefa "'+cliente+'"');
-  queueSave(currentDay);
-  logHistory('task','Tarefa adicionada',`${hora} — ${cliente}`);
+  if(scope==='permanent'){
+    const newId=Math.max(0,...BASE_TASKS.map(t=>typeof t.id==='number'?t.id:0))+1;
+    BASE_TASKS.push({id:newId,hora,cliente,obs,tipo});
+    saveConfig();
+    logHistory('task','Tarefa permanente adicionada',`${hora} — ${cliente}`);
+  }else{
+    const d=dayData(currentDay);if(!d.customTasks)d.customTasks=[];
+    const newId='c-'+Date.now();
+    d.customTasks.push({id:newId,hora,cliente,obs,tipo});
+    stampEdit(currentDay,'adicionou tarefa "'+cliente+'"');queueSave(currentDay);
+    logHistory('task','Tarefa adicionada (só hoje)',`${hora} — ${cliente}`);
+  }
   closeAddTask();render();
 };
+
+let pendingDelTask=null;
 window.deleteTask=function(taskId,label){
-  if(!confirm('Remover a tarefa "'+label+'" do checklist de hoje?'))return;
-  const d=dayData(currentDay);
-  if(typeof taskId==='number'){if(!d.removedTaskIds)d.removedTaskIds=[];if(!d.removedTaskIds.includes(taskId))d.removedTaskIds.push(taskId);}
-  else{d.customTasks=(d.customTasks||[]).filter(t=>t.id!==taskId);}
-  d.done=d.done.filter(x=>x!==taskId);
-  stampEdit(currentDay,'removeu tarefa "'+label+'"');
-  queueSave(currentDay);
-  logHistory('task','Tarefa removida',label);
-  render();
+  pendingDelTask={taskId,label};
+  document.getElementById('delTaskLabel').textContent=`Tarefa: "${label}"`;
+  document.getElementById('del-scope').value='day';
+  document.getElementById('delTaskModal').style.display='flex';
+};
+window.closeDelTask=function(){document.getElementById('delTaskModal').style.display='none';pendingDelTask=null;};
+window.confirmDelTask=function(){
+  if(!pendingDelTask)return;
+  const {taskId,label}=pendingDelTask;
+  const scope=document.getElementById('del-scope').value;
+  if(scope==='permanent'){
+    if(typeof taskId==='number'){
+      BASE_TASKS=BASE_TASKS.filter(t=>t.id!==taskId);
+      saveConfig();
+    }else{
+      // remove from today's custom tasks permanently too (it only existed today anyway)
+      const d=dayData(currentDay);d.customTasks=(d.customTasks||[]).filter(t=>t.id!==taskId);
+      d.done=d.done.filter(x=>x!==taskId);queueSave(currentDay);
+    }
+    logHistory('task','Tarefa removida permanentemente',label);
+  }else{
+    const d=dayData(currentDay);
+    if(typeof taskId==='number'){if(!d.removedTaskIds)d.removedTaskIds=[];if(!d.removedTaskIds.includes(taskId))d.removedTaskIds.push(taskId);}
+    else{d.customTasks=(d.customTasks||[]).filter(t=>t.id!==taskId);}
+    d.done=d.done.filter(x=>x!==taskId);
+    stampEdit(currentDay,'removeu tarefa "'+label+'" (hoje)');queueSave(currentDay);
+    logHistory('task','Tarefa removida (só hoje)',label);
+  }
+  closeDelTask();render();
 };
 
 // ── CHECKLIST RENDER ──────────────────────────────────────────────────────
@@ -625,6 +662,7 @@ function filteredTasks(){const d=dayData(currentDay);const now=getNow();const al
 function tipoLbl(t){return{ps:'PS',numeros:'Números',presenca:'Presença',confirmacao:'Confirm.',custom:'Extra'}[t]||t;}
 function dotCls(task,isDone,now){if(isDone)return'dok';const tm=t2m(task.hora);if(tm<now-10)return'dlate';if(tm<=now+20)return'dnow';return'dfut';}
 function render(){
+  if(!configLoaded)return;
   const d=dayData(currentDay);const now=getNow();const ft=filteredTasks();
   const groups={};ft.forEach(t=>{if(!groups[t.hora])groups[t.hora]=[];groups[t.hora].push(t);});
   let html='';
@@ -653,16 +691,12 @@ function render(){
   const nextT=currentDay===todayISO()?allT.filter(t=>!d.done.includes(t.id)&&t2m(t.hora)>=now).sort((a,b)=>t2m(a.hora)-t2m(b.hora))[0]:null;
   document.getElementById('k-next').textContent=nextT?nextT.hora:'—';document.getElementById('k-next-c').textContent=nextT?nextT.cliente:(currentDay===todayISO()?'Tudo feito!':'—');
 }
-window.toggleDone=function(id,label){
-  const d=dayData(currentDay);const val=!d.done.includes(id);
-  setDone(currentDay,id,val,label);render();renderLastEditBar();
-  logHistory('check',val?'Tarefa concluída':'Tarefa desmarcada',label+' ('+currentDay+')');
-};
+window.toggleDone=function(id,label){const d=dayData(currentDay);const val=!d.done.includes(id);setDone(currentDay,id,val,label);render();renderLastEditBar();logHistory('check',val?'Tarefa concluída':'Tarefa desmarcada',label+' ('+currentDay+')');};
 window.toggleExp=function(id){expanded[id]=!expanded[id];render();};
 window.setNote=function(day,id,val,label){setNote(day,id,val,label);logHistory('note','Nota editada',label);};
 
 // ── EDR ───────────────────────────────────────────────────────────────────
-function calcEdr(day,uid){const c=parseFloat(getF(day,uid,'carga'))||0;const e=parseFloat(getF(day,uid,'entregues'))||0;if(!c)return null;return(e/c*100).toFixed(1);}
+function calcEdr(day,uid){const enc=parseFloat(getF(day,uid,'encomendas'))||0;const e=parseFloat(getF(day,uid,'entregues'))||0;if(!enc)return null;return(e/enc*100).toFixed(1);}
 function edrCls(v){if(v===null)return'ez';const n=parseFloat(v);return n>=95?'eg':n>=90?'ew':'eb';}
 function edrColor(v){if(v===null)return'var(--bmd)';const n=parseFloat(v);return n>=95?'var(--bg2)':n>=90?'var(--bw)':'var(--bd)';}
 function edrColorHex(v){if(v===null)return'#888';const n=parseFloat(v);return n>=95?'#27500A':n>=90?'#633806':'#791F1F';}
@@ -675,20 +709,20 @@ window.setClientField=setClientField;
 function statusOpts(cur){return['OK','Faltou','Sem carga','TPA sem sinal','Back-up externo','Back-up interno','Operação parcial','Aguardar dados'].map(o=>`<option${cur===o?' selected':''}>${o}</option>`).join('');}
 function statusStyle(s){const clr=s==='OK'?'var(--tg)':s==='Faltou'?'var(--td)':'var(--tw)';const bg=s==='OK'?'var(--sg)':s==='Faltou'?'var(--sd)':'var(--sw)';return`background:${bg};color:${clr};`;}
 
-// ── RENDER CLIENTS TABLE ──────────────────────────────────────────────────
+// ── RENDER CLIENTS TABLE (sem coluna Carga, encomendas alimenta EDR) ──────
 function renderClients(){
+  if(!configLoaded)return;
   updateDateLabel();const list=getClientList(currentDay);const tbody=document.getElementById('client-tbody');if(!tbody)return;
   let html='';
   list.forEach((c,idx)=>{
-    const uid=c.uid,status=getF(currentDay,uid,'status','OK'),carga=getF(currentDay,uid,'carga',''),enc=getF(currentDay,uid,'encomendas',''),ent=getF(currentDay,uid,'entregues',''),nent=getF(currentDay,uid,'nentregues',''),saida=getF(currentDay,uid,'saida',''),fim=getF(currentDay,uid,'fim',''),obs=getF(currentDay,uid,'obs',''),editedBy=getF(currentDay,uid,'_editedBy',''),editedAt=getF(currentDay,uid,'_editedAt','');
+    const uid=c.uid,status=getF(currentDay,uid,'status','OK'),enc=getF(currentDay,uid,'encomendas',''),ent=getF(currentDay,uid,'entregues',''),nent=getF(currentDay,uid,'nentregues',''),saida=getF(currentDay,uid,'saida',''),fim=getF(currentDay,uid,'fim',''),obs=getF(currentDay,uid,'obs',''),editedBy=getF(currentDay,uid,'_editedBy',''),editedAt=getF(currentDay,uid,'_editedAt','');
     const edr=calcEdr(currentDay,uid),ecls=edrCls(edr),edrTxt=edr!==null?edr+'%':'—',fillW=edr!==null?Math.min(parseFloat(edr),100):0,fillClr=edrColor(edr);
     const ne=c.name.replace(/'/g,"\\'");
     html+=`<tr draggable="true" data-idx="${idx}" ondragstart="dragStart(event,${idx})" ondragover="dragOver(event)" ondrop="dragDrop(event,${idx})" ondragleave="dragLeave(event)">
       <td><span class="drag-handle" title="Arrastar para reordenar">⠿</span></td>
       <td style="min-width:130px;"><input class="client-name-inp" value="${c.name}" onchange="updateClientMeta(${idx},'name',this.value)"><br><input class="client-sub-inp" value="${c.colaborador}" onchange="updateClientMeta(${idx},'colaborador',this.value)"></td>
       <td><select class="status-sel" style="${statusStyle(status)}" onchange="handleStatusChange(this,'${currentDay}','${uid}','${ne}')">${statusOpts(status)}</select></td>
-      <td><input type="number" min="0" value="${enc}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','encomendas',this.value,'${ne}')"></td>
-      <td><input type="number" min="0" value="${carga}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','carga',this.value,'${ne}');autoNent('${uid}')"></td>
+      <td><input type="number" min="0" value="${enc}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','encomendas',this.value,'${ne}');autoNent('${uid}')"></td>
       <td><input type="time" value="${saida}" onchange="setClientField('${currentDay}','${uid}','saida',this.value,'${ne}')"></td>
       <td><input type="number" min="0" value="${ent}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','entregues',this.value,'${ne}');autoNent('${uid}')"></td>
       <td><input type="time" value="${fim}" onchange="setClientField('${currentDay}','${uid}','fim',this.value,'${ne}')"></td>
@@ -697,19 +731,13 @@ function renderClients(){
       <td><input value="${obs}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','obs',this.value,'${ne}')" style="min-width:80px;"></td>
       <td><button onclick="removeClient(${idx})" style="font-size:11px;padding:3px 8px;border-radius:12px;border:0.5px solid var(--bd);background:var(--sd);color:var(--td);" title="Remover permanentemente">🗑</button></td>
     </tr>
-    <tr><td colspan="12" style="font-size:9px;color:var(--hint);padding:2px 8px;background:var(--s2);">${editedBy?`✏️ ${editedBy} · ${timeAgo(editedAt)}`:''}</td></tr>`;
+    <tr><td colspan="11" style="font-size:9px;color:var(--hint);padding:2px 8px;background:var(--s2);">${editedBy?`✏️ ${editedBy} · ${timeAgo(editedAt)}`:''}</td></tr>`;
   });
   tbody.innerHTML=html;
 }
+window.handleStatusChange=function(sel,day,uid,lbl){const s=sel.value;sel.style.cssText=statusStyle(s);setClientField(day,uid,'status',s,lbl);logHistory('client','Estado alterado',`${lbl}: ${s}`);};
 
-// status change helper
-window.handleStatusChange=function(sel,day,uid,lbl){
-  const s=sel.value;sel.style.cssText=statusStyle(s);
-  setClientField(day,uid,'status',s,lbl);
-  logHistory('client','Estado alterado',`${lbl}: ${s}`);
-};
-
-// drag & drop reorder
+// drag & drop reorder — agora aplica-se à lista BASE (permanente)
 let dragIdx=null;
 window.dragStart=function(e,idx){dragIdx=idx;e.currentTarget.classList.add('dragging');};
 window.dragOver=function(e){e.preventDefault();e.currentTarget.classList.add('drag-over');};
@@ -720,32 +748,41 @@ window.dragDrop=function(e,toIdx){
   const list=getClientList(currentDay);
   const moved=list.splice(dragIdx,1)[0];
   list.splice(toIdx,0,moved);
-  dayData(currentDay).clientList=list;
-  dragIdx=null;
-  stampEdit(currentDay,'reordenou clientes');
-  queueSave(currentDay);
-  logHistory('order','Ordem alterada','Clientes reordenados');
+  // persist as the new base order, so it carries to future days
+  BASE_CLIENTS=list.map(c=>({uid:c.uid,name:c.name,colaborador:c.colaborador}));
+  saveConfig();
+  dayData(currentDay).clientList=list;dragIdx=null;
+  stampEdit(currentDay,'reordenou clientes');queueSave(currentDay);
+  logHistory('order','Ordem alterada','Clientes reordenados (permanente)');
   renderClients();updateMini();
 };
 
 window.addClient=function(){
-  const list=getClientList(currentDay);const uid='custom-'+Date.now();
-  list.push({uid,name:'Novo cliente',colaborador:'Colaborador'});
+  const uid='custom-'+Date.now();
+  const newClient={uid,name:'Novo cliente',colaborador:'Colaborador'};
+  // permanent: adds to base so it appears every following day too
+  BASE_CLIENTS.push(newClient);saveConfig();
+  const list=getClientList(currentDay);list.push({...newClient});
   dayData(currentDay).clientList=list;stampEdit(currentDay,'adicionou cliente');queueSave(currentDay);
-  logHistory('client','Cliente criado','Novo cliente');
+  logHistory('client','Cliente criado (permanente)','Novo cliente');
   renderClients();updateMini();
 };
 window.removeClient=function(idx){
   const list=getClientList(currentDay);const r=list[idx];
-  if(!confirm(`Remover "${r?r.name:'cliente'}" permanentemente da lista?`))return;
+  if(!confirm(`Remover "${r?r.name:'cliente'}" permanentemente da lista (todos os dias)?`))return;
+  // remove from base permanently
+  BASE_CLIENTS=BASE_CLIENTS.filter(c=>c.uid!==r.uid);saveConfig();
   list.splice(idx,1);dayData(currentDay).clientList=list;stampEdit(currentDay,'removeu '+(r?r.name:'cliente'));queueSave(currentDay);
-  logHistory('client','Cliente removido',(r?r.name:'cliente'));
+  logHistory('client','Cliente removido (permanente)',(r?r.name:'cliente'));
   renderClients();updateMini();
 };
 window.updateClientMeta=function(idx,field,val){
   const list=getClientList(currentDay);if(!list[idx])return;
-  const old=list[idx][field];list[idx][field]=val;dayData(currentDay).clientList=list;stampEdit(currentDay,'editou '+field);queueSave(currentDay);
-  logHistory('client','Cliente editado',`ID ${idx+1} | ${val}`);
+  list[idx][field]=val;dayData(currentDay).clientList=list;stampEdit(currentDay,'editou '+field);queueSave(currentDay);
+  // also persist to base so the name/colaborador change carries forward
+  const baseIdx=BASE_CLIENTS.findIndex(c=>c.uid===list[idx].uid);
+  if(baseIdx>=0){BASE_CLIENTS[baseIdx][field]=val;saveConfig();}
+  logHistory('client','Cliente editado',`${val}`);
   updateMini();
 };
 
@@ -774,7 +811,7 @@ window.renderHistory=async function(){
 
 // ── PRINT ─────────────────────────────────────────────────────────────────
 function buildClientCardHtml(c,day){
-  const uid=c.uid,status=getF(day,uid,'status','OK'),carga=getF(day,uid,'carga','—'),ent=getF(day,uid,'entregues','—'),nent=getF(day,uid,'nentregues','—'),saida=getF(day,uid,'saida',''),fim=getF(day,uid,'fim',''),obs=getF(day,uid,'obs','');
+  const uid=c.uid,status=getF(day,uid,'status','OK'),enc=getF(day,uid,'encomendas','—'),ent=getF(day,uid,'entregues','—'),nent=getF(day,uid,'nentregues','—'),saida=getF(day,uid,'saida',''),fim=getF(day,uid,'fim',''),obs=getF(day,uid,'obs','');
   const edr=calcEdr(day,uid),edrTxt=edr!==null?edr+'%':'—',edrClr=edrColorHex(edr),edrBg=edrBgHex(edr);
   const statusClr=status==='OK'?'#27500A':status==='Faltou'?'#791F1F':'#633806';
   const statusBg=status==='OK'?'#EAF3DE':status==='Faltou'?'#FCEBEB':'#FAEEDA';
@@ -788,7 +825,7 @@ function buildClientCardHtml(c,day){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);padding:8px 12px;">
-      ${[['Carga',carga],['Entregues',ent],['Não entregues',nent],['Saída',saida||'—'],['Fecho',fim||'—']].map(([l,v],i)=>`<div style="padding:3px 4px 3px 0;"><div style="font-size:9px;color:#888;margin-bottom:1px;">${l}</div><div style="font-size:13px;font-weight:700;${i===2&&v&&v!=='—'&&v!=='0'?'color:#791F1F;':'color:#111;'}">${v}</div></div>`).join('')}
+      ${[['Encomendas',enc],['Entregues',ent],['Não entregues',nent],['Saída',saida||'—'],['Fecho',fim||'—']].map(([l,v],i)=>`<div style="padding:3px 4px 3px 0;"><div style="font-size:9px;color:#888;margin-bottom:1px;">${l}</div><div style="font-size:13px;font-weight:700;${i===2&&v&&v!=='—'&&v!=='0'?'color:#791F1F;':'color:#111;'}">${v}</div></div>`).join('')}
     </div>
     <div style="padding:0 12px 8px;"><div style="height:4px;background:#e8e8e4;border-radius:2px;overflow:hidden;"><div style="width:${fillW}%;height:100%;background:${edrClr};border-radius:2px;"></div></div></div>
     ${obs?`<div style="padding:0 12px 8px;font-size:10px;color:#555;"><b>Obs:</b> ${obs}</div>`:''}
@@ -809,12 +846,12 @@ window.printEOD=function(){
   const list=getClientList(currentDay);const now=new Date();const d=dayData(currentDay);const doneIds=new Set(d.done);const allT=getAllTasks(currentDay);const total=allT.length,doneC=doneIds.size,pct=Math.round(doneC/total*100);const pctClr=pct>=90?'#27500A':pct>=60?'#633806':'#791F1F';const pctBg=pct>=90?'#EAF3DE':pct>=60?'#FAEEDA':'#FCEBEB';const generated=now.toLocaleDateString('pt-PT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' às '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const groups={};allT.forEach(t=>{if(!groups[t.hora])groups[t.hora]=[];groups[t.hora].push(t);});
   let checkHtml='';Object.keys(groups).sort().forEach(h=>{const l2=groups[h];const dc=l2.filter(t=>doneIds.has(t.id)).length;checkHtml+=`<div style="margin-bottom:8px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;"><span style="font-size:11px;font-weight:700;color:#888;width:36px;">${h}</span><div style="flex:1;height:0.5px;background:#e8e8e4;"></div><span style="font-size:10px;color:#aaa;">${dc}/${l2.length}</span></div>`;l2.forEach(t=>{const ok=doneIds.has(t.id);checkHtml+=`<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:0.5px solid #f5f5f5;"><div style="width:11px;height:11px;border-radius:3px;flex-shrink:0;background:${ok?'#639922':'#e0e0d8'};"></div><span style="font-size:11px;flex:1;${!ok?'color:#bbb;text-decoration:line-through;':''}">${t.cliente} — ${(t.obs||'').substring(0,55)}${(t.obs||'').length>55?'...':''}</span><span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:${ok?'#EAF3DE':'#FCEBEB'};color:${ok?'#27500A':'#791F1F'};flex-shrink:0;">${ok?'✓':'✗'}</span></div>`;if(d.notes&&d.notes[t.id])checkHtml+=`<div style="font-size:10px;color:#888;padding:1px 0 2px 18px;">📝 ${d.notes[t.id]}</div>`;});checkHtml+='</div>';});
-  let tCarga=0,tEnt=0,tNent=0,cOK=0;list.forEach(c=>{tCarga+=parseFloat(getF(currentDay,c.uid,'carga'))||0;tEnt+=parseFloat(getF(currentDay,c.uid,'entregues'))||0;tNent+=parseFloat(getF(currentDay,c.uid,'nentregues'))||0;if(getF(currentDay,c.uid,'status','OK')==='OK')cOK++;});
-  const tEdr=tCarga>0?((tEnt/tCarga)*100).toFixed(1):null;const teClr=edrColorHex(tEdr);const teBg=edrBgHex(tEdr);
+  let tEnc=0,tEnt=0,tNent=0,cOK=0;list.forEach(c=>{tEnc+=parseFloat(getF(currentDay,c.uid,'encomendas'))||0;tEnt+=parseFloat(getF(currentDay,c.uid,'entregues'))||0;tNent+=parseFloat(getF(currentDay,c.uid,'nentregues'))||0;if(getF(currentDay,c.uid,'status','OK')==='OK')cOK++;});
+  const tEdr=tEnc>0?((tEnt/tEnc)*100).toFixed(1):null;const teClr=edrColorHex(tEdr);const teBg=edrBgHex(tEdr);
   openPrint(printBase+`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;"><div><h1>🌙 Relatório Fim de Dia — Traffic Logistics</h1><div style="font-size:11px;color:#666;margin-top:2px;">${fmtLong(currentDay)}</div><div style="font-size:10px;color:#999;">Gerado em: ${generated}</div></div><span style="font-size:15px;font-weight:800;padding:3px 13px;border-radius:20px;background:${pctBg};color:${pctClr};">${pct}% checklist</span></div>
   <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:6px;">Resumo global</div>
   <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:4px;">
-    ${[['Tarefas feitas',`${doneC}/${total}`,'#27500A'],['Carga total',tCarga||'—','#111'],['Entregues',tEnt||'—','#27500A'],['Não entregues',tNent||'—','#791F1F'],['EDR global',tEdr!==null?tEdr+'%':'—',teClr],['Clientes OK',`${cOK}/${list.length}`,'#27500A']].map(([l,v,c])=>`<div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:6px;padding:7px 9px;"><div style="font-size:9px;color:#888;margin-bottom:2px;">${l}</div><div style="font-size:15px;font-weight:800;color:${c};">${v}</div></div>`).join('')}
+    ${[['Tarefas feitas',`${doneC}/${total}`,'#27500A'],['Encomendas',tEnc||'—','#111'],['Entregues',tEnt||'—','#27500A'],['Não entregues',tNent||'—','#791F1F'],['EDR global',tEdr!==null?tEdr+'%':'—',teClr],['Clientes OK',`${cOK}/${list.length}`,'#27500A']].map(([l,v,c])=>`<div style="background:#f7f7f5;border:1px solid #e8e8e4;border-radius:6px;padding:7px 9px;"><div style="font-size:9px;color:#888;margin-bottom:2px;">${l}</div><div style="font-size:15px;font-weight:800;color:${c};">${v}</div></div>`).join('')}
   </div>
   <hr><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;">Clientes do dia</div>${list.map(c=>buildClientCardHtml(c,currentDay)).join('')}
   <hr><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#888;margin-bottom:8px;">Checklist completo</div>${checkHtml}
@@ -832,11 +869,11 @@ window.renderAnalytics=async function(){
   const withData=compliance.filter(c=>c.pct!==null).sort((a,b)=>b.pct-a.pct);
   if(!withData.length)document.getElementById('complianceRankBody').innerHTML='<div class="an-empty">Sem dados.</div>';
   else{let rh='';withData.forEach((c,i)=>{const clr=c.pct>=90?'var(--bg2)':c.pct>=60?'var(--bw)':'var(--bd)';rh+=`<div class="rank-row"><span class="rank-pos">${i+1}</span><span class="rank-name">${fmtShort(c.day)}</span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${c.pct}%;background:${clr};"></div></div><span class="rank-pct" style="color:${clr};">${c.pct}%</span></div>`;});document.getElementById('complianceRankBody').innerHTML=rh;}
-  const allC={};days.forEach(day=>{const d=cache[day];if(!d)return;const list=d.clientList||DEFAULT_CLIENTS;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const carga=parseFloat(cd.carga)||0,ent=parseFloat(cd.entregues)||0;if(!carga)return;const edr=(ent/carga)*100;if(!allC[c.uid])allC[c.uid]={name:c.name,colaborador:c.colaborador,values:[]};allC[c.uid].values.push({day,edr});});});
+  const allC={};days.forEach(day=>{const d=cache[day];if(!d)return;const list=d.clientList||BASE_CLIENTS;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const enc=parseFloat(cd.encomendas)||0,ent=parseFloat(cd.entregues)||0;if(!enc)return;const edr=(ent/enc)*100;if(!allC[c.uid])allC[c.uid]={name:c.name,colaborador:c.colaborador,values:[]};allC[c.uid].values.push({day,edr});});});
   const clientAvg=Object.entries(allC).map(([uid,info])=>({uid,name:info.name,colaborador:info.colaborador,avg:info.values.reduce((s,v)=>s+v.edr,0)/info.values.length})).sort((a,b)=>b.avg-a.avg);
   if(!clientAvg.length)document.getElementById('edrRankBody').innerHTML='<div class="an-empty">Sem dados.</div>';
   else{let rh='';clientAvg.forEach((c,i)=>{const clr=edrColor(c.avg.toFixed(1));rh+=`<div class="rank-row"><span class="rank-pos">${i+1}</span><span class="rank-name">${c.name} <span style="color:var(--hint);font-weight:400;">— ${c.colaborador}</span></span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.min(c.avg,100)}%;background:${clr};"></div></div><span class="rank-pct" style="color:${clr};">${c.avg.toFixed(1)}%</span></div>`;});document.getElementById('edrRankBody').innerHTML=rh;}
-  const trendPts=days.map(day=>{const d=cache[day];if(!d)return{day,avg:null};const list=d.clientList||DEFAULT_CLIENTS;let sum=0,count=0;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const carga=parseFloat(cd.carga)||0,ent=parseFloat(cd.entregues)||0;if(!carga)return;sum+=(ent/carga)*100;count++;});return{day,avg:count?sum/count:null};});
+  const trendPts=days.map(day=>{const d=cache[day];if(!d)return{day,avg:null};const list=d.clientList||BASE_CLIENTS;let sum=0,count=0;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const enc=parseFloat(cd.encomendas)||0,ent=parseFloat(cd.entregues)||0;if(!enc)return;sum+=(ent/enc)*100;count++;});return{day,avg:count?sum/count:null};});
   const validPts=trendPts.filter(p=>p.avg!==null);
   if(!validPts.length)document.getElementById('edrTrendBody').innerHTML='<div class="an-empty">Sem dados.</div>';
   else{const w=Math.max(320,days.length*34),h=130,pad=24;const maxV=100,minV=Math.min(60,Math.floor(Math.min(...validPts.map(p=>p.avg))/10)*10);const xStep=(w-pad*2)/Math.max(days.length-1,1);const yFor=v=>h-pad-((v-minV)/(maxV-minV))*(h-pad*2);let pathD='',firstFound=false,circles='';trendPts.forEach((p,i)=>{const x=pad+i*xStep;if(p.avg===null)return;const y=yFor(p.avg);pathD+=(firstFound?' L':'M')+x+' '+y;firstFound=true;const clr=edrColor(p.avg.toFixed(1));circles+=`<circle cx="${x}" cy="${y}" r="3" fill="${clr}"><title>${fmtShort(p.day)}: ${p.avg.toFixed(1)}%</title></circle>`;});document.getElementById('edrTrendBody').innerHTML=`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;"><line x1="${pad}" y1="${yFor(95)}" x2="${w-pad}" y2="${yFor(95)}" stroke="var(--bg2)" stroke-width="0.5" stroke-dasharray="3,3" opacity="0.5"/><text x="${w-pad}" y="${yFor(95)-4}" font-size="9" fill="var(--hint)" text-anchor="end">95%</text><path d="${pathD}" fill="none" stroke="var(--bi)" stroke-width="2"/>${circles}</svg>`;}
@@ -856,6 +893,7 @@ window.showTab=function(tab,btn){
 (async function init(){
   await ensureUserName();
   setSyncLabel('A ligar...');
+  await loadConfig();
   await loadDay(currentDay);listenDay(currentDay);
   setSyncLabel('Sincronizado ✓');
   buildDayPicker();updateDateLabel();render();updateMini();renderLastEditBar();
