@@ -207,6 +207,39 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
   </div>
 </div>
 
+<div id="editTaskModal" class="modal-ovl" style="display:none;">
+  <div class="modal-box">
+    <h3>✏️ Editar tarefa</h3>
+    <p id="et-scope-label">A editar tarefa.</p>
+    <input type="time" id="et-hora">
+    <input type="text" id="et-cliente" maxlength="60">
+    <textarea id="et-obs" maxlength="200"></textarea>
+    <select id="et-tipo">
+      <option value="ps">PS</option>
+      <option value="presenca">Presença</option>
+      <option value="numeros">Números</option>
+      <option value="confirmacao">Confirmação</option>
+      <option value="custom">Outro</option>
+    </select>
+    <div id="et-days-wrap">
+      <p style="margin-bottom:6px;">Em que dias da semana?</p>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">
+        <label class="dow-chip"><input type="checkbox" class="et-dow" value="1"> Seg</label>
+        <label class="dow-chip"><input type="checkbox" class="et-dow" value="2"> Ter</label>
+        <label class="dow-chip"><input type="checkbox" class="et-dow" value="3"> Qua</label>
+        <label class="dow-chip"><input type="checkbox" class="et-dow" value="4"> Qui</label>
+        <label class="dow-chip"><input type="checkbox" class="et-dow" value="5"> Sex</label>
+        <label class="dow-chip"><input type="checkbox" class="et-dow" value="6"> Sáb</label>
+        <label class="dow-chip"><input type="checkbox" class="et-dow" value="0"> Dom</label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-sec" onclick="closeEditTask()">Cancelar</button>
+      <button class="btn-pri" onclick="confirmEditTask()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div id="addTaskModal" class="modal-ovl" style="display:none;">
   <div class="modal-box">
     <h3>➕ Adicionar tarefa</h3>
