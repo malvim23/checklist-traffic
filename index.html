@@ -103,7 +103,8 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .tp-ps{background:var(--sp);color:var(--tp);}.tp-numeros{background:var(--si);color:var(--ti);}.tp-presenca{background:var(--sg);color:var(--tg);}.tp-confirmacao{background:var(--sw);color:var(--tw);}.tp-custom{background:var(--s3);color:var(--muted);}
 .xbtn{font-size:15px;color:var(--muted);background:none;border:none;padding:0 2px;line-height:1;}
 .del-task-btn{font-size:12px;color:var(--td);background:none;border:none;padding:0 2px;line-height:1;opacity:0;}
-.task:hover .del-task-btn{opacity:1;}
+.edit-task-btn{font-size:12px;color:var(--ti);background:none;border:none;padding:0 2px;line-height:1;opacity:0;}
+.task:hover .del-task-btn,.task:hover .edit-task-btn{opacity:1;}
 .rp-mini{padding:12px 14px;}
 .rp-mini-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
 .mini-row{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:var(--r);margin-bottom:4px;background:var(--surface);border:0.5px solid var(--border);}
@@ -712,7 +713,57 @@ window.confirmDelTask=function(){
   closeDelTask();render();
 };
 
-// ── CHECKLIST RENDER ──────────────────────────────────────────────────────
+// ── EDIT TASK ─────────────────────────────────────────────────────────────
+let pendingEditTask=null;
+window.editTask=function(taskId){
+  // find the task in base or custom
+  const d=dayData(currentDay);
+  let task=null;let isBase=false;
+  if(typeof taskId==='number'){task=BASE_TASKS.find(t=>t.id===taskId);isBase=true;}
+  else{task=(d.customTasks||[]).find(t=>t.id===taskId);isBase=false;}
+  if(!task)return;
+  pendingEditTask={taskId,isBase};
+  // populate modal
+  document.getElementById('et-hora').value=task.hora||'';
+  document.getElementById('et-cliente').value=task.cliente||'';
+  document.getElementById('et-obs').value=task.obs||'';
+  document.getElementById('et-tipo').value=task.tipo||'ps';
+  // days of week — base tasks can have dow, custom tasks just show all checked
+  const dow=task.dow&&task.dow.length<7?task.dow:[0,1,2,3,4,5,6];
+  document.querySelectorAll('.et-dow').forEach(c=>{c.checked=dow.includes(parseInt(c.value));});
+  // show/hide days section based on whether it's a base (permanent) task
+  document.getElementById('et-days-wrap').style.display=isBase?'block':'none';
+  document.getElementById('et-scope-label').textContent=isBase?'Tarefa permanente — as alterações aplicam-se a todos os dias.':'Tarefa personalizada (só este dia).';
+  document.getElementById('editTaskModal').style.display='flex';
+};
+window.closeEditTask=function(){document.getElementById('editTaskModal').style.display='none';pendingEditTask=null;};
+window.confirmEditTask=function(){
+  if(!pendingEditTask)return;
+  const {taskId,isBase}=pendingEditTask;
+  const hora=document.getElementById('et-hora').value;
+  const cliente=document.getElementById('et-cliente').value.trim();
+  const obs=document.getElementById('et-obs').value.trim();
+  const tipo=document.getElementById('et-tipo').value;
+  if(!hora||!cliente){alert('Hora e cliente são obrigatórios.');return;}
+  if(isBase){
+    const idx=BASE_TASKS.findIndex(t=>t.id===taskId);
+    if(idx<0){closeEditTask();return;}
+    const dow=Array.from(document.querySelectorAll('.et-dow:checked')).map(c=>parseInt(c.value));
+    if(!dow.length){alert('Seleciona pelo menos um dia da semana.');return;}
+    BASE_TASKS[idx]={...BASE_TASKS[idx],hora,cliente,obs,tipo,dow:dow.length===7?null:dow};
+    saveConfig();
+    logHistory('task','Tarefa permanente editada',`${hora} — ${cliente}`);
+  }else{
+    const d=dayData(currentDay);
+    const idx=(d.customTasks||[]).findIndex(t=>t.id===taskId);
+    if(idx>=0){d.customTasks[idx]={...d.customTasks[idx],hora,cliente,obs,tipo};}
+    stampEdit(currentDay,'editou tarefa "'+cliente+'"');queueSave(currentDay);
+    logHistory('task','Tarefa editada (hoje)',`${hora} — ${cliente}`);
+  }
+  closeEditTask();render();
+};
+
+
 window.setFilter=function(f,btn){currentFilter=f;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');render();};
 function filteredTasks(){const d=dayData(currentDay);const now=getNow();const all=getAllTasks(currentDay);return all.filter(t=>{if(currentFilter==='todos')return true;if(currentFilter==='pendentes')return!d.done.includes(t.id);if(currentFilter==='atraso')return!d.done.includes(t.id)&&t2m(t.hora)<now-10;return t.tipo===currentFilter;});}
 function tipoLbl(t){return{ps:'PS',numeros:'Números',presenca:'Presença',confirmacao:'Confirm.',custom:'Extra'}[t]||t;}
@@ -734,6 +785,7 @@ function render(){
         </div>
         <div class="tright">
           <span class="ttype tp-${t.tipo}">${tipoLbl(t.tipo)}</span>
+          <button class="edit-task-btn" onclick="editTask(${idStr})" title="Editar tarefa">✏️</button>
           <button class="del-task-btn" onclick="deleteTask(${idStr},'${labelEsc}')" title="Remover tarefa">🗑</button>
           <button class="xbtn" onclick="toggleExp(${idStr})">${exp?'−':'+'}</button>
         </div>
