@@ -196,7 +196,7 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
 
 <div id="loadingOvl" class="loading-ovl">
   <div class="loading-spinner"></div>
-  <div style="font-size:13px;color:var(--muted);">A ligar ao Firebase...</div>
+  <div style="font-size:13px;color:var(--muted);font-weight:500;">A ligar ao Firebase...</div>
 </div>
 
 <div id="idModalOvl" class="modal-ovl" style="display:none;">
@@ -307,8 +307,7 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
       <span class="prog-lbl" id="progpct">0%</span>
     </div>
     <span style="font-size:11px;color:var(--muted);" id="prog-count"></span>
-    <span id="theme-label" style="font-size:13px;">☀️</span>
-    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()"></button>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Alternar tema"></button>
   </div>
 </div>
 <div class="last-edit-bar" id="lastEditBar">—</div>
@@ -341,7 +340,7 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
           <button class="fb" onclick="setFilter('pendentes',this)">Pendentes</button>
           <button class="fb" onclick="setFilter('atraso',this)">Atraso</button>
         </div>
-        <button onclick="openAddTask()" style="font-size:11px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--bg2);background:var(--sg);color:var(--tg);font-weight:600;">+ Tarefa</button>
+        <button onclick="openAddTask()" style="font-size:11px;padding:5px 13px;border-radius:20px;border:1px solid var(--bg2);background:var(--sg);color:var(--tg);font-weight:700;box-shadow:0 1px 4px rgba(22,163,74,.15);">+ Tarefa</button>
       </div>
     </div>
     <div id="cl-body"></div>
@@ -363,7 +362,7 @@ tr.drag-over td{border-top:2px solid var(--bi)!important;}
       <button class="print-btn" style="background:var(--bg2);" onclick="printEOD()">🌙 Fim de Dia</button>
     </div>
   </div>
-  <div style="font-size:11px;color:var(--hint);margin-bottom:10px;">⠿ Arrasta para reordenar (aplica-se a todos os dias) · 🗑️ Remove permanentemente</div>
+  <div style="font-size:11px;color:var(--hint);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><span style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">⠿ Arrasta para reordenar</span><span style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;">🗑 Remove permanentemente</span></div>
   <div class="client-table-wrap">
     <table class="client-table" id="client-table">
       <thead>
@@ -466,7 +465,7 @@ const fireApp=initializeApp(firebaseConfig);
 const db=getFirestore(fireApp);
 
 // ── THEME ─────────────────────────────────────────────────────────────────
-function applyTheme(dark){document.documentElement.setAttribute('data-theme',dark?'dark':'light');const btn=document.getElementById('themeBtn'),lbl=document.getElementById('theme-label');if(btn)btn.classList.toggle('dark',dark);if(lbl)lbl.textContent=dark?'🌙':'☀️';try{localStorage.setItem('tl_theme',dark?'dark':'light');}catch(e){}}
+function applyTheme(dark){document.documentElement.setAttribute('data-theme',dark?'dark':'light');const btn=document.getElementById('themeBtn');if(btn)btn.classList.toggle('dark',dark);try{localStorage.setItem('tl_theme',dark?'dark':'light');}catch(e){}}
 window.toggleTheme=function(){applyTheme(document.documentElement.getAttribute('data-theme')!=='dark');};
 (function(){let p='light';try{p=localStorage.getItem('tl_theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}catch(e){}applyTheme(p==='dark');})();
 
@@ -837,7 +836,7 @@ function renderClients(){
       <td class="nent-cell"><input type="number" min="0" value="${nent}" placeholder="Auto" id="nent-${uid}" onchange="setClientField('${currentDay}','${uid}','nentregues',this.value,'${ne}')"></td>
       <td><span class="edr-badge ${ecls}" id="edr-cell-${uid}">${edrTxt}</span><div class="edr-bar-inline"><div class="edr-bar-inline-fill" id="edr-fill-${uid}" style="width:${fillW}%;background:${fillClr};"></div></div></td>
       <td><input value="${obs}" placeholder="—" onchange="setClientField('${currentDay}','${uid}','obs',this.value,'${ne}')" style="min-width:80px;"></td>
-      <td><button onclick="removeClient(${idx})" style="font-size:11px;padding:3px 8px;border-radius:12px;border:0.5px solid var(--bd);background:var(--sd);color:var(--td);" title="Remover permanentemente">🗑</button></td>
+      <td>      <button onclick="removeClient(${idx})" style="font-size:13px;width:28px;height:28px;border-radius:8px;border:1px solid var(--bmd);background:var(--s2);color:var(--bd);display:flex;align-items:center;justify-content:center;" title="Remover permanentemente">🗑</button></td>
     </tr>
     <tr><td colspan="11" style="font-size:9px;color:var(--hint);padding:2px 8px;background:var(--s2);">${editedBy?`✏️ ${editedBy} · ${timeAgo(editedAt)}`:''}</td></tr>`;
   });
