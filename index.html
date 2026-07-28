@@ -517,6 +517,20 @@ function applyTheme(dark){document.documentElement.setAttribute('data-theme',dar
 window.toggleTheme=function(){applyTheme(document.documentElement.getAttribute('data-theme')!=='dark');};
 (function(){let p='light';try{p=localStorage.getItem('tl_theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}catch(e){}applyTheme(p==='dark');})();
 
+// ── EDR BREAKDOWN (verificação diária do ranking) ──────────────────────────
+window.toggleEdrBreakdown=function(uid,rowEl){
+  const box=rowEl.querySelector('.edr-breakdown');
+  if(box.style.display==='block'){box.style.display='none';return;}
+  const info=window._edrBreakdown[uid];
+  if(!info){box.style.display='none';return;}
+  const rows=[...info.perDay].sort((a,b)=>b.day.localeCompare(a.day)).map(p=>{const clr=edrColor(p.edr.toFixed(1));return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px;"><span style="width:80px;color:var(--muted);">${fmtShort(p.day)}</span><span style="width:70px;">Enc: <b>${p.enc}</b></span><span style="width:70px;">Ent: <b>${p.ent}</b></span><span style="color:${clr};font-weight:700;margin-left:auto;">${p.edr.toFixed(1)}%</span></div>`;}).join('');
+  box.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;">
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Detalhe por dia (total: ${info.totalEnt}/${info.totalEnc} = ${(info.totalEnt/info.totalEnc*100).toFixed(1)}%)</div>
+    ${rows}
+  </div>`;
+  box.style.display='block';
+};
+
 // ── BASE TASKS (fallback seed — real source is Firestore 'config/baseTasks') ─
 const SEED_TASKS=[
   {id:1,hora:'08:00',cliente:'GPS Carrinhas',tipo:'confirmacao',obs:'Confirmar se carrinhas dormiram no local da operação'},
@@ -1024,10 +1038,11 @@ window.renderAnalytics=async function(){
   const withData=compliance.filter(c=>c.pct!==null).sort((a,b)=>b.pct-a.pct);
   if(!withData.length)document.getElementById('complianceRankBody').innerHTML='<div class="an-empty">Sem dados.</div>';
   else{let rh='';withData.forEach((c,i)=>{const clr=c.pct>=90?'var(--bg2)':c.pct>=60?'var(--bw)':'var(--bd)';rh+=`<div class="rank-row"><span class="rank-pos">${i+1}</span><span class="rank-name">${fmtShort(c.day)}</span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${c.pct}%;background:${clr};"></div></div><span class="rank-pct" style="color:${clr};">${c.pct}%</span></div>`;});document.getElementById('complianceRankBody').innerHTML=rh;}
-  const allC={};days.forEach(day=>{const d=cache[day];if(!d)return;const list=d.clientList||BASE_CLIENTS;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const enc=parseFloat(cd.encomendas)||0,ent=parseFloat(cd.entregues)||0;if(!enc)return;if(!allC[c.uid])allC[c.uid]={name:c.name,colaborador:c.colaborador,totalEnc:0,totalEnt:0,dias:0};allC[c.uid].totalEnc+=enc;allC[c.uid].totalEnt+=ent;allC[c.uid].dias++;});});
+  const allC={};days.forEach(day=>{const d=cache[day];if(!d)return;const list=d.clientList||BASE_CLIENTS;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const enc=parseFloat(cd.encomendas)||0,ent=parseFloat(cd.entregues)||0;if(!enc)return;if(!allC[c.uid])allC[c.uid]={name:c.name,colaborador:c.colaborador,totalEnc:0,totalEnt:0,dias:0,perDay:[]};allC[c.uid].totalEnc+=enc;allC[c.uid].totalEnt+=ent;allC[c.uid].dias++;allC[c.uid].perDay.push({day,enc,ent,edr:(ent/enc)*100});});});
+  window._edrBreakdown=allC;
   const clientAvg=Object.entries(allC).map(([uid,info])=>({uid,name:info.name,colaborador:info.colaborador,dias:info.dias,avg:(info.totalEnt/info.totalEnc)*100})).sort((a,b)=>b.avg-a.avg);
   if(!clientAvg.length)document.getElementById('edrRankBody').innerHTML='<div class="an-empty">Sem dados.</div>';
-  else{let rh='';clientAvg.forEach((c,i)=>{const clr=edrColor(c.avg.toFixed(1));rh+=`<div class="rank-row"><span class="rank-pos">${i+1}</span><span class="rank-name">${c.name} <span style="color:var(--hint);font-weight:400;">— ${c.colaborador} · ${c.dias}d</span></span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.min(c.avg,100)}%;background:${clr};"></div></div><span class="rank-pct" style="color:${clr};">${c.avg.toFixed(1)}%</span></div>`;});document.getElementById('edrRankBody').innerHTML=rh;}
+  else{let rh='';clientAvg.forEach((c,i)=>{const clr=edrColor(c.avg.toFixed(1));rh+=`<div class="rank-row" style="cursor:pointer;flex-wrap:wrap;" onclick="toggleEdrBreakdown('${c.uid}',this)"><span class="rank-pos">${i+1}</span><span class="rank-name">${c.name} <span style="color:var(--hint);font-weight:400;">— ${c.colaborador} · ${c.dias}d</span></span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.min(c.avg,100)}%;background:${clr};"></div></div><span class="rank-pct" style="color:${clr};">${c.avg.toFixed(1)}%</span><div class="edr-breakdown" style="display:none;width:100%;margin-top:8px;"></div></div>`;});document.getElementById('edrRankBody').innerHTML=rh;}
   const trendPts=days.map(day=>{const d=cache[day];if(!d)return{day,avg:null};const list=d.clientList||BASE_CLIENTS;let sum=0,count=0;list.forEach(c=>{const cd=(d.clients||{})[c.uid];if(!cd)return;const enc=parseFloat(cd.encomendas)||0,ent=parseFloat(cd.entregues)||0;if(!enc)return;sum+=(ent/enc)*100;count++;});return{day,avg:count?sum/count:null};});
   const validPts=trendPts.filter(p=>p.avg!==null);
   if(!validPts.length)document.getElementById('edrTrendBody').innerHTML='<div class="an-empty">Sem dados.</div>';
